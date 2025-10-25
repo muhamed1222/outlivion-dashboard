@@ -14,8 +14,8 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       'inline-flex items-center justify-center font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60 disabled:pointer-events-none'
 
     const variants = {
-      primary: 'bg-accent text-white shadow-soft hover:bg-accent-hover',
-      secondary: 'bg-accent-soft text-accent hover:bg-accent-soft/70 shadow-soft',
+      primary: 'bg-accent text-white hover:bg-accent-hover',
+      secondary: 'bg-accent-soft text-accent hover:bg-accent-soft/70',
       outline: 'border border-border bg-background-surface text-foreground hover:border-accent hover:text-accent',
       ghost: 'text-foreground-muted hover:bg-accent-soft/60',
     }

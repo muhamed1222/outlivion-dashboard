@@ -134,7 +134,7 @@ export function Navbar() {
             </Link>
             <button
               onClick={() => setIsMenuOpen((prev) => !prev)}
-              className="flex items-center gap-3 rounded-card bg-background-surface px-4 py-2 text-sm font-medium text-foreground shadow-soft transition hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              className="flex items-center gap-3 rounded-card bg-background-surface px-4 py-2 text-sm font-medium text-foreground transition hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
               aria-expanded={isMenuOpen}
               aria-controls="mobile-navigation"
               aria-haspopup="menu"
@@ -149,7 +149,7 @@ export function Navbar() {
           <div
             id="mobile-navigation"
             role="menu"
-            className="absolute inset-x-0 top-full z-50 border-t border-border bg-background-surface p-3 shadow-soft"
+            className="absolute inset-x-0 top-full z-50 border-t border-border bg-background-surface p-3"
           >
             <div className="space-y-2">
               {navigation.map((item) => {
@@ -191,7 +191,7 @@ export function Navbar() {
       <aside className="hidden w-60 flex-col border-border bg-background lg:flex lg:border-r">
         <div className="flex h-full flex-col gap-8 px-6 py-8">
           <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-accent shadow-soft">
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-accent">
               <span className="text-xl font-semibold">O</span>
             </div>
             <div>
@@ -212,7 +212,7 @@ export function Navbar() {
                     href={item.href}
                     className={cn(
                       'flex items-center gap-3 rounded-card px-3 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
-                      isActive ? 'bg-accent text-white shadow-soft' : 'text-foreground-muted hover:bg-accent-soft'
+                      isActive ? 'bg-accent text-white' : 'text-foreground-muted hover:bg-accent-soft'
                     )}
                   >
                     <Icon className={cn('transition', isActive ? 'text-white' : 'text-foreground-subtle')} />
@@ -241,7 +241,7 @@ export function Navbar() {
 
 function LogoMark() {
   return (
-    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent shadow-soft">
+    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent">
       <span className="text-lg font-semibold">O</span>
     </div>
   )

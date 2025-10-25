@@ -177,7 +177,7 @@ export default function PayPage() {
                 onClick={() => setSelectedPlan(plan.id)}
                 className={`flex flex-col gap-2 rounded-card border bg-background px-5 py-6 text-left transition ${
                   selectedPlan === plan.id
-                    ? 'border-accent bg-accent-soft shadow-soft'
+                    ? 'border-accent bg-accent-soft'
                     : 'border-border hover:border-accent-soft'
                 }`}
               >
@@ -205,7 +205,7 @@ export default function PayPage() {
             onClick={() => setSelectedGateway('enot')}
             className={`flex w-full items-center gap-3 rounded-card border bg-background px-4 py-4 text-left transition ${
               selectedGateway === 'enot'
-                ? 'border-accent bg-accent-soft shadow-soft'
+                ? 'border-accent bg-accent-soft'
                 : 'border-border hover:border-accent-soft'
             }`}
           >
@@ -225,7 +225,7 @@ export default function PayPage() {
             onClick={() => setSelectedGateway('yookassa')}
             className={`flex w-full items-center gap-3 rounded-card border bg-background px-4 py-4 text-left transition ${
               selectedGateway === 'yookassa'
-                ? 'border-accent bg-accent-soft shadow-soft'
+                ? 'border-accent bg-accent-soft'
                 : 'border-border hover:border-accent-soft'
             }`}
           >
@@ -254,7 +254,7 @@ export default function PayPage() {
               onClick={() => setPaymentMethod(option.key)}
               className={`flex w-full items-center gap-3 rounded-card border bg-background px-4 py-4 text-left transition ${
                 paymentMethod === option.key
-                  ? 'border-accent bg-accent-soft shadow-soft'
+                  ? 'border-accent bg-accent-soft'
                   : 'border-border hover:border-accent-soft'
               }`}
             >

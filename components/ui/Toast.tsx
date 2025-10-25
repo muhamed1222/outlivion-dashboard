@@ -43,7 +43,7 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
   return (
     <div
       className={cn(
-        'fixed top-5 right-5 z-50 flex items-center gap-3 rounded-card border px-5 py-4 shadow-soft animate-in slide-in-from-top-2',
+        'fixed top-5 right-5 z-50 flex items-center gap-3 rounded-card border px-5 py-4 animate-in slide-in-from-top-2',
         styles[type]
       )}
     >
