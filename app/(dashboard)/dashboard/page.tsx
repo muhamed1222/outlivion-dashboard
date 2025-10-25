@@ -38,15 +38,15 @@ export default async function DashboardPage() {
   const referralLink = `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL?.replace('https://t.me/', '') || 'outlivionbot'}?start=${userData?.telegram_id}`
 
   return (
-    <div className="space-y-8 pb-10">
-      <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+    <div className="space-y-7 pb-10">
+      <div className="grid gap-5 lg:grid-cols-[2fr,1fr]">
         <Card>
-          <CardHeader className="flex flex-row items-start justify-between gap-6 pb-6">
+          <CardHeader className="flex flex-row items-start justify-between gap-4 pb-4">
             <div>
-              <p className="text-sm font-medium uppercase tracking-wide text-foreground-subtle">Текущий баланс</p>
-              <h1 className="mt-3 text-4xl font-semibold text-foreground">{formatCurrency(balance)}</h1>
+              <p className="text-xs font-semibold uppercase tracking-wide text-foreground-subtle">Баланс</p>
+              <h1 className="mt-2 text-3xl font-semibold text-foreground">{formatCurrency(balance)}</h1>
             </div>
-            <div className="rounded-card bg-accent-soft px-4 py-2 text-sm font-medium text-accent">
+            <div className="rounded-card bg-accent-soft px-3 py-1.5 text-xs font-medium text-accent">
               {isActive ? 'Подписка активна' : 'Подписка приостановлена'}
             </div>
           </CardHeader>
@@ -71,20 +71,20 @@ export default async function DashboardPage() {
         </Card>
 
         <Card>
-          <CardHeader className="pb-5">
-            <CardTitle className="text-lg">Подписка</CardTitle>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-base font-semibold text-foreground">Подписка</CardTitle>
             <CardDescription>
               {plan
                 ? `Тариф ${plan.name} · ${formatCurrency(plan.price)} в месяц`
-                : 'Вы еще не выбрали тариф — активируйте код или пополните баланс'}
+                : 'Выберите тариф или активируйте код, чтобы подключить доступ'}
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="rounded-card border border-border bg-background px-4 py-3 text-sm text-foreground">
               {subscriptionExpires ? (
                 <div className="space-y-1">
-                  <p className="font-medium text-foreground">До окончания подписки:</p>
-                  <p className="text-foreground-muted">
+                  <p className="font-medium text-foreground">Дата окончания</p>
+                  <p className="text-sm text-foreground-muted">
                     {new Date(subscriptionExpires).toLocaleDateString('ru-RU', {
                       day: 'numeric',
                       month: 'long',
@@ -95,16 +95,14 @@ export default async function DashboardPage() {
               ) : (
                 <div className="space-y-1">
                   <p className="font-medium text-foreground">Подписка не активна</p>
-                  <p className="text-foreground-muted">
-                    Пополните баланс или активируйте код, чтобы получить доступ к VPN.
-                  </p>
+                  <p className="text-sm text-foreground-muted">Пополните баланс или активируйте код.</p>
                 </div>
               )}
             </div>
 
             {(balance < 0 || !isActive) && (
               <div className="rounded-card bg-rose-50 px-4 py-3 text-sm text-rose-600">
-                Недостаточно средств. Пополните баланс, чтобы продолжить пользоваться сервисом.
+                Пополните баланс или активируйте код, чтобы возобновить доступ.
               </div>
             )}
           </CardContent>
@@ -112,24 +110,24 @@ export default async function DashboardPage() {
       </div>
 
       <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-lg">Быстрые действия</CardTitle>
-          <CardDescription>Одним кликом получите доступ к ключевым разделам кабинета</CardDescription>
+        <CardHeader className="pb-3">
+          <CardTitle className="text-base font-semibold text-foreground">Быстрые действия</CardTitle>
+          <CardDescription>Ключевые разделы кабинета</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             {[
-              { title: 'Оплата', description: 'Пополнение через карту и СБП', href: '/pay' },
-              { title: 'Активация', description: 'Промокоды и доступ', href: '/code' },
-              { title: 'Рефералы', description: 'Бонусы за друзей', href: '/referral' },
-              { title: 'Помощь', description: 'Ответы и поддержка', href: '/help' },
+              { title: 'Оплата', description: 'Пополнить баланс', href: '/pay' },
+              { title: 'Активация', description: 'Ввести промокод', href: '/code' },
+              { title: 'Рефералы', description: 'Получить ссылку', href: '/referral' },
+              { title: 'Помощь', description: 'FAQ и поддержка', href: '/help' },
             ].map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex flex-col gap-2 rounded-card border border-transparent bg-background p-4 shadow-soft transition hover:border-accent hover:bg-accent-soft"
+                className="group flex flex-col gap-1.5 rounded-card border border-transparent bg-background p-4 shadow-soft transition hover:border-accent hover:bg-accent-soft"
               >
-                <span className="text-sm font-semibold text-foreground">{item.title}</span>
+                <span className="text-sm font-medium text-foreground">{item.title}</span>
                 <span className="text-xs text-foreground-muted">{item.description}</span>
               </Link>
             ))}

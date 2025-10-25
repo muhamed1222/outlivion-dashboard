@@ -118,12 +118,10 @@ export function Navbar() {
         <div className="container-dashboard">
           <div className="flex h-16 items-center justify-between gap-3">
             <Link href="/dashboard" className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent shadow-soft">
-                <span className="text-lg font-semibold">O</span>
-              </div>
+              <LogoMark />
               <div>
                 <p className="text-base font-semibold text-foreground">Outlivion</p>
-                <p className="text-xs text-foreground-subtle">Управление подпиской VPN</p>
+                <p className="text-xs text-foreground-subtle">Личный кабинет</p>
               </div>
             </Link>
             <button
@@ -173,7 +171,7 @@ export function Navbar() {
       </nav>
 
       {/* Desktop sidebar */}
-      <aside className="hidden w-64 flex-col border-border bg-background lg:flex lg:border-r">
+      <aside className="hidden w-60 flex-col border-border bg-background lg:flex lg:border-r">
         <div className="flex h-full flex-col gap-8 px-6 py-8">
           <Link href="/dashboard" className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-accent shadow-soft">
@@ -185,9 +183,9 @@ export function Navbar() {
             </div>
           </Link>
 
-          <div className="space-y-4">
-            <p className="px-2 text-xs font-semibold uppercase tracking-wide text-foreground-subtle">Навигация</p>
-            <nav className="space-y-1">
+          <div className="space-y-3">
+            <p className="px-2 text-[11px] font-medium uppercase tracking-wide text-foreground-subtle">Навигация</p>
+            <nav className="space-y-1.5">
               {navigation.map((item) => {
                 const Icon = item.icon
                 const isActive = pathname === item.href
@@ -208,11 +206,8 @@ export function Navbar() {
             </nav>
           </div>
 
-          <div className="mt-auto space-y-2">
-            <div className="rounded-card border border-border bg-background px-4 py-3">
-              <p className="text-sm font-semibold text-foreground">{userName}</p>
-              <p className="text-xs text-foreground-subtle">Telegram аккаунт</p>
-            </div>
+          <div className="mt-auto space-y-2 border-t border-border pt-4">
+            <p className="px-2 text-xs font-medium text-foreground-subtle">{userName}</p>
             <button
               onClick={handleSignOut}
               className="flex w-full items-center gap-3 rounded-card px-3 py-2 text-sm text-rose-500 transition hover:bg-rose-50"
@@ -224,5 +219,13 @@ export function Navbar() {
         </div>
       </aside>
     </>
+  )
+}
+
+function LogoMark() {
+  return (
+    <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent shadow-soft">
+      <span className="text-lg font-semibold">O</span>
+    </div>
   )
 }
