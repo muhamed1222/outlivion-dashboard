@@ -44,12 +44,34 @@ export async function POST(request: NextRequest) {
 
     const email = `${authToken.telegram_id}@outlivion.local`
 
-    // Получаем или создаём пользователя в Supabase Auth
-    const { data: existingAuthUser } = await supabase.auth.admin.getUserByEmail(email)
-    let authUser = existingAuthUser?.user ?? null
+    const { data: existingProfileByTelegram, error: profileFetchError } = await supabase
+      .from('users')
+      .select('*')
+      .eq('telegram_id', authToken.telegram_id)
+      .maybeSingle()
+
+    if (profileFetchError) {
+      console.error('Profile fetch error:', profileFetchError)
+      return NextResponse.json(
+        { error: 'Ошибка доступа к профилю пользователя' },
+        { status: 500 }
+      )
+    }
+
+    type AdminUser = NonNullable<
+      Awaited<ReturnType<typeof supabase.auth.admin.getUserById>>['data']['user']
+    >
+
+    let authUser: AdminUser | null = null
+    let createdAuthUser = false
+
+    if (existingProfileByTelegram?.id) {
+      const { data: existingAuthUser } = await supabase.auth.admin.getUserById(existingProfileByTelegram.id)
+      authUser = existingAuthUser?.user ?? null
+    }
 
     if (!authUser) {
-      const { data: createdAuthUser, error: authCreateError } = await supabase.auth.admin.createUser({
+      const { data: createdAuthResponse, error: authCreateError } = await supabase.auth.admin.createUser({
         email,
         password: token,
         email_confirm: true,
@@ -58,13 +80,43 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      if (authCreateError || !createdAuthUser?.user) {
-        console.error('Auth creation error:', authCreateError)
-        return NextResponse.json({ error: 'Не удалось создать пользователя' }, { status: 500 })
-      }
+      if (authCreateError) {
+        if (authCreateError.message?.toLowerCase().includes('already registered')) {
+          const { data: listData, error: listError } = await supabase.auth.admin.listUsers()
 
-      authUser = createdAuthUser.user
-    } else {
+          if (listError) {
+            console.error('Auth list users error:', listError)
+          }
+
+          const matchedUser = listData?.users.find(
+            (user) =>
+              user.email?.toLowerCase() === email.toLowerCase() ||
+              user.user_metadata?.telegram_id === authToken.telegram_id
+          )
+          if (matchedUser) {
+            authUser = matchedUser
+          } else {
+            console.error('Auth user lookup error after conflict:', authCreateError)
+            return NextResponse.json(
+              { error: 'Не удалось получить данные пользователя' },
+              { status: 500 }
+            )
+          }
+        } else {
+          console.error('Auth creation error:', authCreateError)
+          return NextResponse.json({ error: 'Не удалось создать пользователя' }, { status: 500 })
+        }
+      } else if (createdAuthResponse?.user) {
+        authUser = createdAuthResponse.user
+        createdAuthUser = true
+      }
+    }
+
+    if (!authUser) {
+      return NextResponse.json({ error: 'Не удалось синхронизировать пользователя' }, { status: 500 })
+    }
+
+    if (!createdAuthUser) {
       const { error: updatePasswordError } = await supabase.auth.admin.updateUserById(authUser.id, {
         password: token,
         user_metadata: {
@@ -77,18 +129,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    if (!authUser) {
-      return NextResponse.json({ error: 'Не удалось синхронизировать пользователя' }, { status: 500 })
-    }
-
     // Синхронизируем профиль в таблице users
     let userData = null
 
-    const { data: existingProfileByTelegram } = await supabase
-      .from('users')
-      .select('*')
-      .eq('telegram_id', authToken.telegram_id)
-      .maybeSingle()
+    if (existingProfileByTelegram) {
+      userData = existingProfileByTelegram
+    }
 
     if (existingProfileByTelegram) {
       if (existingProfileByTelegram.id !== authUser.id) {
