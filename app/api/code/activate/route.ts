@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
     const token = authHeader?.replace('Bearer ', '')
     
     let authenticatedUserId: string | null = null
-    let supabase = getSupabaseClient()
+    const supabase = getSupabaseClient()
 
     // If token provided, validate it and use authenticated user
     if (token) {

@@ -20,34 +20,76 @@ function getSupabaseClient() {
 export async function POST(request: NextRequest) {
   try {
     const supabase = getSupabaseClient()
-    const { plan_id, user_id, method } = await request.json()
+    const { plan_id, user_id, method, plan_type } = await request.json()
 
-    if (!plan_id || !user_id || !method) {
+    if (!user_id || !method) {
       return NextResponse.json(
         { error: 'Отсутствуют обязательные параметры' },
         { status: 400 }
       )
     }
-
-    // Получаем информацию о тарифе
-    const { data: plan, error: planError } = await supabase
-      .from('plans')
-      .select('*')
-      .eq('id', plan_id)
+    
+    // Get user's telegram_id
+    const { data: user, error: userError } = await supabase
+      .from('users')
+      .select('telegram_id')
+      .eq('id', user_id)
       .single()
-
-    if (planError || !plan) {
-      return NextResponse.json({ error: 'Тариф не найден' }, { status: 404 })
+    
+    if (userError || !user) {
+      return NextResponse.json({ error: 'Пользователь не найден' }, { status: 404 })
     }
 
-    // Создаём запись о платеже
+    // Determine amount and plan based on plan_type or plan_id
+    let amount: number
+    let planName: string
+    const planTypeStr = plan_type || 'month'
+    
+    if (plan_id) {
+      // Legacy: using plans table
+      const { data: plan, error: planError } = await supabase
+        .from('plans')
+        .select('*')
+        .eq('id', plan_id)
+        .single()
+
+      if (planError || !plan) {
+        return NextResponse.json({ error: 'Тариф не найден' }, { status: 404 })
+      }
+      
+      amount = plan.price
+      planName = plan.name
+    } else {
+      // New: using subscription plan types
+      const prices: Record<string, number> = {
+        month: 199,
+        halfyear: 999,
+        year: 1999,
+      }
+      
+      const names: Record<string, string> = {
+        month: '1 месяц',
+        halfyear: '6 месяцев',
+        year: '1 год',
+      }
+      
+      amount = prices[planTypeStr] || prices.month
+      planName = names[planTypeStr] || names.month
+    }
+
+    // Создаём запись о платеже с metadata
     const { data: payment, error: paymentError } = await supabase
       .from('payments')
       .insert({
         user_id,
-        amount: plan.price,
+        amount,
         method,
         status: 'pending',
+        metadata: {
+          telegram_id: user.telegram_id,
+          plan_type: planTypeStr,
+          plan_name: planName,
+        },
       })
       .select()
       .single()
@@ -59,11 +101,12 @@ export async function POST(request: NextRequest) {
     // Создаём платеж в Enot.io
     try {
       const enotResponse = await createEnotPayment({
-        amount: formatAmountForEnot(plan.price),
+        amount: formatAmountForEnot(amount),
         order_id: payment.id,
-        comment: `Оплата тарифа ${plan.name}`,
+        comment: `Оплата подписки ${planName}`,
         success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?order_id=${payment.id}`,
         fail_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/fail?order_id=${payment.id}`,
+        custom: user.telegram_id.toString(), // Pass telegram_id as custom field
       })
 
       // Сохраняем external_id от Enot.io

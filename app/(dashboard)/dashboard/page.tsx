@@ -3,8 +3,10 @@ import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import Link from 'next/link'
-import { formatCurrency, isSubscriptionActive } from '@/lib/utils'
+import { formatCurrency } from '@/lib/utils'
 import { ReferralCard } from '@/components/ReferralCard'
+import { SubscriptionStatus } from '@/components/SubscriptionStatus'
+import { getSubscriptionStatus } from '@/lib/subscription'
 
 export const dynamic = 'force-dynamic'
 
@@ -31,9 +33,8 @@ export default async function DashboardPage() {
   }
 
   const balance = userData?.balance || 0
-  const subscriptionExpires = userData?.subscription_expires
-  const plan = userData?.plans
-  const isActive = isSubscriptionActive(subscriptionExpires)
+  const subscriptionStatus = getSubscriptionStatus(userData)
+  const isActive = subscriptionStatus.isActive
 
   const referralLink = `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL?.replace('https://t.me/', '') || 'outlivionbot'}?start=${userData?.telegram_id}`
 
@@ -53,7 +54,11 @@ export default async function DashboardPage() {
           <CardContent className="flex flex-col gap-4">
             <div className="grid gap-3 sm:grid-cols-2">
               <Link href="/pay">
-                <Button className="w-full justify-center">Пополнить баланс</Button>
+                <Button className="w-full justify-center">
+                  {subscriptionStatus.isExpired || subscriptionStatus.isTrial 
+                    ? 'Оформить подписку' 
+                    : 'Продлить подписку'}
+                </Button>
               </Link>
               <Link href="/code">
                 <Button variant="secondary" className="w-full justify-center">
@@ -70,43 +75,7 @@ export default async function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base font-semibold text-foreground">Подписка</CardTitle>
-            <CardDescription>
-              {plan
-                ? `Тариф ${plan.name} · ${formatCurrency(plan.price)} в месяц`
-                : 'Выберите тариф или активируйте код, чтобы подключить доступ'}
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="rounded-card border border-border bg-background px-4 py-3 text-sm text-foreground">
-              {subscriptionExpires ? (
-                <div className="space-y-1">
-                  <p className="font-medium text-foreground">Дата окончания</p>
-                  <p className="text-sm text-foreground-muted">
-                    {new Date(subscriptionExpires).toLocaleDateString('ru-RU', {
-                      day: 'numeric',
-                      month: 'long',
-                      year: 'numeric',
-                    })}
-                  </p>
-                </div>
-              ) : (
-                <div className="space-y-1">
-                  <p className="font-medium text-foreground">Подписка не активна</p>
-                  <p className="text-sm text-foreground-muted">Пополните баланс или активируйте код.</p>
-                </div>
-              )}
-            </div>
-
-            {(balance < 0 || !isActive) && (
-              <div className="rounded-card bg-rose-50 px-4 py-3 text-sm text-rose-600">
-                Пополните баланс или активируйте код, чтобы возобновить доступ.
-              </div>
-            )}
-          </CardContent>
-        </Card>
+        <SubscriptionStatus user={userData} />
       </div>
 
       <Card>
