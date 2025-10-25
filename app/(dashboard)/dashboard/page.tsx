@@ -40,33 +40,33 @@ export default async function DashboardPage() {
   return (
     <div className="pb-8">
       {/* Баланс */}
-      <div className="bg-gradient-to-br from-indigo-500/20 to-purple-600/20 backdrop-blur-xl rounded-3xl p-6 mb-6">
-        <p className="text-white/60 text-sm mb-2">Баланс</p>
-        <h1 className="text-5xl font-bold mb-6">{formatCurrency(balance)}</h1>
+      <div className="bg-gradient-to-br from-gray-900 to-gray-850 border border-gray-800 rounded-3xl p-6 mb-6 shadow-xl">
+        <p className="text-gray-400 text-sm mb-2">Баланс</p>
+        <h1 className="text-5xl font-bold mb-6 text-white">{formatCurrency(balance)}</h1>
         
         <div className="space-y-3">
           <Link href="/pay">
-            <Button className="w-full h-14 text-lg bg-indigo-600 hover:bg-indigo-700 rounded-2xl">
+            <Button className="w-full h-14 text-lg bg-accent hover:bg-accent-hover rounded-2xl font-semibold shadow-lg shadow-accent/20 transition-all">
               Пополнить баланс
             </Button>
           </Link>
           
           <Link href="/code">
-            <Button className="w-full h-14 text-lg bg-black hover:bg-gray-900 rounded-2xl">
-              Активировать код
+            <Button className="w-full h-14 text-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-2xl font-semibold transition-all">
+              Обещанный платёж
             </Button>
           </Link>
         </div>
 
-        <Link href="/history" className="block text-center mt-4 text-indigo-300 hover:text-indigo-200 transition">
+        <Link href="/history" className="block text-center mt-4 text-gray-400 hover:text-accent transition">
           История платежей
         </Link>
       </div>
 
       {/* Предупреждение о балансе */}
       {(balance < 0 || !isActive) && (
-        <div className="mb-6 text-center">
-          <p className="text-red-400 font-medium">
+        <div className="mb-6 bg-red-500/10 border border-red-500/30 rounded-2xl p-4">
+          <p className="text-red-400 font-medium text-center text-sm">
             Недостаточно средств на балансе, аккаунт приостановлен. Для продолжения работы пополните баланс
           </p>
         </div>
@@ -75,7 +75,7 @@ export default async function DashboardPage() {
       {/* Тариф */}
       {plan && (
         <div className="text-center mb-8">
-          <p className="text-white/60">
+          <p className="text-gray-500 text-sm">
             Тариф {formatCurrency(plan.price)}/мес за одно устройство
           </p>
         </div>

@@ -9,9 +9,18 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#0D0D0D",
+        background: "#000000",
         foreground: "#FFFFFF",
-        accent: "#FF5C00",
+        accent: {
+          DEFAULT: "#FF6B35",
+          hover: "#FF8355",
+          dark: "#E85A25",
+        },
+        gray: {
+          850: "#1A1A1A",
+          900: "#0F0F0F",
+          950: "#050505",
+        },
       },
       fontFamily: {
         sans: ['Inter', 'SF Pro Display', 'system-ui', 'sans-serif'],

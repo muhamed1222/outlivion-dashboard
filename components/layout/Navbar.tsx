@@ -46,42 +46,45 @@ export function Navbar() {
   }
 
   return (
-    <nav className="bg-black sticky top-0 z-50 border-b border-white/10">
+    <nav className="bg-black sticky top-0 z-50 border-b border-gray-800">
       <div className="container-dashboard">
         <div className="flex items-center justify-between h-14">
           {/* Логотип */}
-          <Link href="/dashboard" className="flex items-center gap-2">
-            <span className="text-2xl">🍎</span>
-            <span className="text-xl font-bold">outlivion</span>
+          <Link href="/dashboard" className="flex items-center gap-2 group">
+            <span className="text-2xl">🔥</span>
+            <span className="text-xl font-bold">
+              <span className="text-white">out</span>
+              <span className="text-accent group-hover:text-accent-hover transition">livion</span>
+            </span>
           </Link>
 
           {/* Имя пользователя и меню */}
           <div className="relative">
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
-              className="flex items-center gap-2 hover:bg-white/5 rounded-lg px-3 py-2 transition"
+              className="flex items-center gap-2 hover:bg-gray-900 rounded-lg px-3 py-2 transition border border-transparent hover:border-gray-800"
             >
-              <span className="text-sm font-medium">{userName}</span>
+              <span className="text-sm font-medium text-gray-300">{userName}</span>
               <svg
-                className={`w-5 h-5 transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
+                className={`w-4 h-4 transition-transform text-gray-400 ${isMenuOpen ? 'rotate-180' : ''}`}
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
               >
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
               </svg>
             </button>
 
             {/* Выпадающее меню */}
             {isMenuOpen && (
-              <div className="absolute right-0 mt-2 w-56 bg-gray-900 rounded-xl shadow-xl border border-white/10 overflow-hidden">
+              <div className="absolute right-0 mt-2 w-56 bg-gray-900 rounded-xl shadow-2xl border border-gray-800 overflow-hidden">
                 {navigation.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
                     onClick={() => setIsMenuOpen(false)}
-                    className={`block px-4 py-3 text-sm hover:bg-white/5 transition ${
-                      pathname === item.href ? 'bg-indigo-600/50' : ''
+                    className={`block px-4 py-3 text-sm hover:bg-gray-850 transition ${
+                      pathname === item.href ? 'bg-accent/10 text-accent border-l-2 border-accent' : 'text-gray-300'
                     }`}
                   >
                     {item.name}
@@ -92,7 +95,7 @@ export function Navbar() {
                     setIsMenuOpen(false)
                     handleSignOut()
                   }}
-                  className="w-full text-left px-4 py-3 text-sm hover:bg-white/5 transition border-t border-white/10 text-red-400"
+                  className="w-full text-left px-4 py-3 text-sm hover:bg-gray-850 transition border-t border-gray-800 text-red-400"
                 >
                   🚪 Выйти
                 </button>
