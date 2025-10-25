@@ -109,6 +109,11 @@ NEXT_PUBLIC_SUPPORT_URL=https://t.me/outlivion_support
 
 # App
 NEXT_PUBLIC_APP_URL=http://localhost:3000
+
+# Payment Gateway (Enot.io)
+ENOT_SHOP_ID=your_shop_id
+ENOT_SECRET_KEY=your_secret_key
+ENOT_SECRET_KEY_2=your_secret_key_2
 ```
 
 4. **Создайте базу данных**
@@ -159,13 +164,45 @@ vercel --prod
 
 ## 💳 Платёжная система
 
-Проект готов к интеграции с платёжными шлюзами:
+Проект полностью интегрирован с платёжным шлюзом **Enot.io**:
 
-- **Enot.io** - для РФ
-- **YooKassa** - альтернатива
-- **СБП** - Система быстрых платежей
+- ✅ Создание платежей через API
+- ✅ Проверка подписи webhook для безопасности
+- ✅ Автоматическое пополнение баланса
+- ✅ Автоматическое продление подписки при достаточном балансе
+- ✅ Обработка успешных и неудачных платежей
+- ✅ Сохранение полных данных от шлюза для аудита
 
-Webhook для обработки платежей находится в `app/api/payment/webhook/route.ts` (нужно создать).
+### Настройка платежей
+
+Подробная инструкция по настройке платежного шлюза доступна в [PAYMENT_INTEGRATION.md](./PAYMENT_INTEGRATION.md):
+
+- Регистрация в Enot.io
+- Получение API ключей
+- Настройка webhook
+- Тестирование локально через Ngrok
+- Деплой на продакшн
+
+### Быстрый старт
+
+1. Добавьте переменные окружения:
+   ```env
+   ENOT_SHOP_ID=your_shop_id
+   ENOT_SECRET_KEY=your_secret_key
+   ENOT_SECRET_KEY_2=your_secret_key_2
+   ```
+
+2. Примените миграцию базы данных:
+   ```bash
+   # Выполните supabase/add_payment_external_id.sql
+   ```
+
+3. Настройте webhook URL в личном кабинете Enot.io
+
+4. Для локального тестирования используйте:
+   ```bash
+   ./test_payment_webhook.sh
+   ```
 
 ## 🎯 Acceptance Criteria
 

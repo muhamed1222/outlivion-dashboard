@@ -146,6 +146,8 @@ export interface Database {
           amount: number
           method: 'card' | 'sbp' | 'promo'
           status: 'pending' | 'completed' | 'failed'
+          external_id: string | null
+          gateway_data: Json | null
           created_at: string
         }
         Insert: {
@@ -154,6 +156,8 @@ export interface Database {
           amount: number
           method: 'card' | 'sbp' | 'promo'
           status?: 'pending' | 'completed' | 'failed'
+          external_id?: string | null
+          gateway_data?: Json | null
           created_at?: string
         }
         Update: {
@@ -162,6 +166,8 @@ export interface Database {
           amount?: number
           method?: 'card' | 'sbp' | 'promo'
           status?: 'pending' | 'completed' | 'failed'
+          external_id?: string | null
+          gateway_data?: Json | null
           created_at?: string
         }
       }

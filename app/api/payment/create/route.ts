@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { createEnotPayment, formatAmountForEnot } from '@/lib/enot'
 
 export const dynamic = 'force-dynamic'
 
@@ -55,21 +56,37 @@ export async function POST(request: NextRequest) {
       throw paymentError
     }
 
-    // TODO: Интеграция с платёжным шлюзом (Enot.io / YooKassa)
-    // Временно возвращаем mock URL для тестирования
-    const payment_url = `https://payment.outlivion.com/pay/${payment.id}`
+    // Создаём платеж в Enot.io
+    try {
+      const enotResponse = await createEnotPayment({
+        amount: formatAmountForEnot(plan.price),
+        order_id: payment.id,
+        comment: `Оплата тарифа ${plan.name}`,
+        success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?order_id=${payment.id}`,
+        fail_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/fail?order_id=${payment.id}`,
+      })
 
-    // В реальном проекте здесь будет:
-    // const paymentGatewayResponse = await createPaymentInGateway({
-    //   amount: plan.price,
-    //   orderId: payment.id,
-    //   description: `Оплата тарифа ${plan.name}`,
-    //   successUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success`,
-    //   failUrl: `${process.env.NEXT_PUBLIC_APP_URL}/payment/fail`,
-    // })
-    // const payment_url = paymentGatewayResponse.paymentUrl
+      // Сохраняем external_id от Enot.io
+      await supabase
+        .from('payments')
+        .update({ external_id: enotResponse.id })
+        .eq('id', payment.id)
 
-    return NextResponse.json({ payment_url, payment_id: payment.id })
+      return NextResponse.json({ 
+        payment_url: enotResponse.url, 
+        payment_id: payment.id 
+      })
+    } catch (enotError) {
+      console.error('Enot.io payment creation error:', enotError)
+      
+      // Помечаем платёж как неудачный
+      await supabase
+        .from('payments')
+        .update({ status: 'failed' })
+        .eq('id', payment.id)
+
+      throw new Error('Ошибка создания платежа в платёжном шлюзе')
+    }
   } catch (error) {
     console.error('Create payment error:', error)
     return NextResponse.json(
