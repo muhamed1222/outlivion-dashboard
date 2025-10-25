@@ -38,11 +38,11 @@ export default async function DashboardPage() {
   const referralLink = `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL?.replace('https://t.me/', '') || 'outlivionbot'}?start=${userData?.telegram_id}`
 
   return (
-    <div className="min-h-screen pb-8">
+    <div className="pb-8">
       {/* Баланс */}
-      <div className="bg-gradient-to-br from-indigo-500/20 to-purple-600/20 backdrop-blur-xl rounded-3xl p-8 mb-6">
+      <div className="bg-gradient-to-br from-indigo-500/20 to-purple-600/20 backdrop-blur-xl rounded-3xl p-6 mb-6">
         <p className="text-white/60 text-sm mb-2">Баланс</p>
-        <h1 className="text-6xl font-bold mb-6">{formatCurrency(balance)}</h1>
+        <h1 className="text-5xl font-bold mb-6">{formatCurrency(balance)}</h1>
         
         <div className="space-y-3">
           <Link href="/pay">

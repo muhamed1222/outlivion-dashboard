@@ -18,8 +18,8 @@ export function ReferralCard({ referralLink }: ReferralCardProps) {
   }
 
   return (
-    <div className="bg-gradient-to-br from-indigo-600/30 to-purple-600/30 backdrop-blur-xl rounded-3xl p-8">
-      <h2 className="text-2xl font-bold mb-4">
+    <div className="bg-gradient-to-br from-indigo-600/30 to-purple-600/30 backdrop-blur-xl rounded-3xl p-6">
+      <h2 className="text-xl font-bold mb-4">
         Пригласи друга и получи 50₽ на баланс
       </h2>
       

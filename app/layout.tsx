@@ -22,7 +22,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="ru">
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-black`}>
         {children}
       </body>
     </html>

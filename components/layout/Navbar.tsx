@@ -46,13 +46,13 @@ export function Navbar() {
   }
 
   return (
-    <nav className="backdrop-blur-sm bg-black/20 sticky top-0 z-50 border-b border-white/5">
+    <nav className="bg-black sticky top-0 z-50 border-b border-white/10">
       <div className="container-dashboard">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-14">
           {/* Логотип */}
           <Link href="/dashboard" className="flex items-center gap-2">
             <span className="text-2xl">🍎</span>
-            <span className="text-xl font-bold">hitvpn</span>
+            <span className="text-xl font-bold">outlivion</span>
           </Link>
 
           {/* Имя пользователя и меню */}
