@@ -140,63 +140,6 @@ export default function HelpPage() {
         </CardContent>
       </Card>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Полезные ссылки</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {[
-            {
-              href: '#',
-              title: 'Скачать приложение',
-              description: 'Доступно для iOS и Android',
-              icon: (
-                <svg viewBox="0 0 24 24" className="h-5 w-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 3.5H8A2.5 2.5 0 005.5 6v12A2.5 2.5 0 008 20.5h8a2.5 2.5 0 002.5-2.5V6A2.5 2.5 0 0016 3.5z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 17h.01" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 6.5h5" />
-                </svg>
-              ),
-            },
-            {
-              href: '#',
-              title: 'База знаний',
-              description: 'Пошаговые инструкции и советы',
-              icon: (
-                <svg viewBox="0 0 24 24" className="h-5 w-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 4.5h12a1.5 1.5 0 011.5 1.5v12a1.5 1.5 0 01-1.5 1.5H6A1.5 1.5 0 014.5 18V6A1.5 1.5 0 016 4.5z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 8h8M8 12h8M8 16h5" />
-                </svg>
-              ),
-            },
-            {
-              href: '#',
-              title: 'Новости и обновления',
-              description: 'Актуальная информация в Telegram-канале',
-              icon: (
-                <svg viewBox="0 0 24 24" className="h-5 w-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 5.5l16-2v17l-16-2V5.5z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 9l5 3-5 3V9z" />
-                </svg>
-              ),
-            },
-          ].map((item) => (
-            <a
-              key={item.title}
-              href={item.href}
-              className="flex items-center gap-3 rounded-card border border-border bg-background px-4 py-3 transition hover:border-accent-soft hover:text-accent"
-            >
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft">
-                {item.icon}
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-foreground">{item.title}</p>
-                <p className="text-xs text-foreground-muted">{item.description}</p>
-              </div>
-            </a>
-          ))}
-        </CardContent>
-      </Card>
     </div>
   )
 }

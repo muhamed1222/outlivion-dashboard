@@ -74,7 +74,7 @@ const navigation = [
   { name: 'Главная', href: '/dashboard', icon: HomeIcon },
   { name: 'Пополнить', href: '/pay', icon: BanknotesIcon },
   { name: 'Активация', href: '/code', icon: TicketIcon },
-  { name: 'Реферальная', href: '/referral', icon: UsersIcon },
+  { name: 'Рефералы', href: '/referral', icon: UsersIcon },
   { name: 'История', href: '/history', icon: ClockIcon },
   { name: 'Помощь', href: '/help', icon: QuestionMarkCircleIcon },
 ]

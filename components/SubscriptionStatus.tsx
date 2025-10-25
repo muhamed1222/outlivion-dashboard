@@ -9,6 +9,16 @@ interface SubscriptionStatusProps {
   className?: string
 }
 
+function getDayWord(days: number): string {
+  const lastDigit = days % 10
+  const lastTwoDigits = days % 100
+  
+  if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return 'дней'
+  if (lastDigit === 1) return 'день'
+  if (lastDigit >= 2 && lastDigit <= 4) return 'дня'
+  return 'дней'
+}
+
 export function SubscriptionStatus({ user, className }: SubscriptionStatusProps) {
   const status = getSubscriptionStatus(user)
   
@@ -80,7 +90,7 @@ export function SubscriptionStatus({ user, className }: SubscriptionStatusProps)
         {status.isTrial && (
           <div className="rounded-card bg-yellow-50 px-4 py-3 text-sm text-yellow-700">
             {status.isActive 
-              ? `У вас ${status.daysRemaining} ${status.daysRemaining === 1 ? 'день' : 'дня'} пробного периода`
+              ? `У вас ${status.daysRemaining} ${getDayWord(status.daysRemaining)} пробного периода`
               : 'Пробный период закончился'}
           </div>
         )}

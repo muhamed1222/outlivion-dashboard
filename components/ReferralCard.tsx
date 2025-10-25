@@ -12,10 +12,15 @@ interface ReferralCardProps {
 export function ReferralCard({ referralLink }: ReferralCardProps) {
   const [copied, setCopied] = useState(false)
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(referralLink)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      // Fallback for older browsers or permission issues
+      console.error('Failed to copy:', err)
+    }
   }
 
   return (

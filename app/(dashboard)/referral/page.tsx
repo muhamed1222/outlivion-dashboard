@@ -67,10 +67,15 @@ export default function ReferralPage() {
     fetchData()
   }, [fetchData])
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(referralLink)
-    setCopied(true)
-    setTimeout(() => setCopied(false), 2000)
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(referralLink)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch (err) {
+      // Fallback for older browsers or permission issues
+      console.error('Failed to copy:', err)
+    }
   }
 
   return (

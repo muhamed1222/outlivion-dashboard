@@ -141,6 +141,16 @@ export default function PayPage() {
 
   const selectedPlanData = plans.find((plan) => plan.id === selectedPlan)
 
+  const getDayWord = (days: number): string => {
+    const lastDigit = days % 10
+    const lastTwoDigits = days % 100
+    
+    if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return 'дней'
+    if (lastDigit === 1) return 'день'
+    if (lastDigit >= 2 && lastDigit <= 4) return 'дня'
+    return 'дней'
+  }
+
   return (
     <div className="mx-auto max-w-4xl space-y-6">
       <div className="space-y-2">
@@ -173,7 +183,7 @@ export default function PayPage() {
               >
                 <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
                 <div className="text-2xl font-semibold text-accent">{formatCurrency(plan.price)}</div>
-                <p className="text-sm text-foreground-muted">{plan.duration_days} дней доступа</p>
+                <p className="text-sm text-foreground-muted">{plan.duration_days} {getDayWord(plan.duration_days)} доступа</p>
                 {plan.duration_days === 365 && (
                   <span className="mt-3 inline-flex w-max items-center rounded-pill bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-600">
                     Лучшее предложение

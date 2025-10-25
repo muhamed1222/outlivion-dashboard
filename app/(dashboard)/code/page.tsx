@@ -49,9 +49,19 @@ export default function CodePage() {
         throw new Error(data.error || 'Ошибка активации кода')
       }
 
+      const getDayWord = (days: number): string => {
+        const lastDigit = days % 10
+        const lastTwoDigits = days % 100
+        
+        if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return 'дней'
+        if (lastDigit === 1) return 'день'
+        if (lastDigit >= 2 && lastDigit <= 4) return 'дня'
+        return 'дней'
+      }
+
       setMessage({
         type: 'success',
-        text: `Код успешно активирован! Подписка продлена на ${data.days_added} дней.`,
+        text: `Код успешно активирован! Подписка продлена на ${data.days_added} ${getDayWord(data.days_added)}.`,
       })
       setCode('')
     } catch (err) {
