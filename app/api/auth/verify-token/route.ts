@@ -65,49 +65,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // УПРОЩЕННЫЙ ПОДХОД: Если пользователь существует, создаем для него сессию
-    if (existingProfileByTelegram) {
-      console.log('User already exists, creating session:', existingProfileByTelegram.id)
-      
-      // Создаем или обновляем пользователя в auth.users с новым паролем
-      const { data: existingAuthUser } = await supabase.auth.admin.getUserById(existingProfileByTelegram.id)
-      
-      if (!existingAuthUser?.user) {
-        // Создаем пользователя в auth.users с существующим ID из users
-        const { data: newAuthUser, error: createError } = await supabase.auth.admin.createUser({
-          id: existingProfileByTelegram.id, // Используем существующий ID
-          email,
-          password: token,
-          email_confirm: true,
-          user_metadata: {
-            telegram_id: authToken.telegram_id,
-          },
-        })
-        
-        if (createError) {
-          console.error('Failed to create auth user:', createError)
-          // Если не удалось создать с существующим ID, возвращаем ошибку
-          return NextResponse.json(
-            { error: 'Не удалось синхронизировать пользователя' },
-            { status: 500 }
-          )
-        }
-      } else {
-        // Обновляем пароль существующего пользователя
-        await supabase.auth.admin.updateUserById(existingProfileByTelegram.id, {
-          password: token,
-        })
-      }
-      
-      // Помечаем токен как использованный
-      await supabase
-        .from('auth_tokens')
-        .update({ used: true })
-        .eq('token', token)
-
-      return NextResponse.json({ user: existingProfileByTelegram })
-    }
-
     type AdminUser = NonNullable<
       Awaited<ReturnType<typeof supabase.auth.admin.getUserById>>['data']['user']
     >
