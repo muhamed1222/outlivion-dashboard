@@ -96,9 +96,34 @@ export async function POST(request: NextRequest) {
     }
 
     if (!authUser) {
-      console.log('🆕 [verify-token] Creating new auth user with email:', email)
+      console.log('🔍 [verify-token] Searching existing auth users...')
+      // Сначала ищем в существующих пользователях
+      const { data: listData, error: listError } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
+      
+      if (!listError && listData?.users) {
+        console.log(`📋 [verify-token] Found ${listData.users.length} auth users, searching...`)
+        const matchedUser = listData.users.find(
+          (user) =>
+            user.email?.toLowerCase() === email.toLowerCase() ||
+            user.user_metadata?.telegram_id === authToken.telegram_id
+        )
+        
+        if (matchedUser) {
+          authUser = matchedUser as AdminUser
+          console.log('✅ [verify-token] Found existing auth user by email or telegram_id:', authUser.id)
+        }
+      } else if (listError) {
+        console.error('❌ [verify-token] Error listing users:', listError)
+      }
+    }
+
+    if (!authUser) {
+      console.log('🆕 [verify-token] Creating new auth user...')
+      // Создаем нового пользователя с уникальным email
+      const uniqueEmail = `${authToken.telegram_id}-${Date.now()}@outlivion.local`
+      
       const { data: createdAuthResponse, error: authCreateError } = await supabase.auth.admin.createUser({
-        email,
+        email: uniqueEmail,
         password: token,
         email_confirm: true,
         user_metadata: {
@@ -107,58 +132,14 @@ export async function POST(request: NextRequest) {
       })
 
       if (authCreateError) {
-        console.error('❌ [verify-token] Auth creation error details:', {
-          message: authCreateError.message,
-          status: authCreateError.status,
-          code: authCreateError.code,
-        })
-        if (authCreateError.message?.toLowerCase().includes('already registered')) {
-          console.log('🔍 [verify-token] User already registered, searching...')
-          let matchedUser: AdminUser | null = null
+        console.error('❌ [verify-token] Auth creation error:', authCreateError)
+        return NextResponse.json(
+          { error: 'Не удалось создать пользователя', details: authCreateError.message },
+          { status: 500 }
+        )
+      }
 
-          const admin = supabase.auth.admin as {
-            listUsers: typeof supabase.auth.admin.listUsers
-            getUserByEmail?: (email: string) => Promise<{
-              data: { user: AdminUser | null } | null
-              error: { message: string } | null
-            }>
-          }
-
-          if (typeof admin.getUserByEmail === 'function') {
-            const { data: emailUser, error: emailLookupError } = await admin.getUserByEmail(email)
-            if (emailLookupError) {
-              console.error('Auth getUserByEmail error:', emailLookupError)
-            }
-            matchedUser = emailUser?.user ?? null
-          }
-
-          if (!matchedUser) {
-            const { data: listData, error: listError } = await supabase.auth.admin.listUsers({ page: 1, perPage: 2000 })
-            if (listError) {
-              console.error('Auth list users error:', listError)
-            }
-            matchedUser = (listData?.users.find(
-              (user) =>
-                user.email?.toLowerCase() === email.toLowerCase() ||
-                user.user_metadata?.telegram_id === authToken.telegram_id
-            ) ?? null) as AdminUser | null
-          }
-
-          if (matchedUser) {
-            authUser = matchedUser
-            console.log('✅ [verify-token] Found existing auth user:', authUser.id)
-          } else {
-            console.error('❌ [verify-token] Auth user lookup error after conflict:', authCreateError)
-            return NextResponse.json(
-              { error: 'Не удалось получить данные пользователя', details: authCreateError.message },
-              { status: 500 }
-            )
-          }
-        } else {
-          console.error('❌ [verify-token] Auth creation error:', authCreateError)
-          return NextResponse.json({ error: 'Не удалось создать пользователя', details: authCreateError.message }, { status: 500 })
-        }
-      } else if (createdAuthResponse?.user) {
+      if (createdAuthResponse?.user) {
         authUser = createdAuthResponse.user
         createdAuthUser = true
         console.log('✅ [verify-token] Auth user created:', authUser.id)
@@ -173,6 +154,7 @@ export async function POST(request: NextRequest) {
     console.log('✅ [verify-token] Auth user ready:', authUser.id)
 
     if (!createdAuthUser) {
+      console.log('🔄 [verify-token] Updating password for existing user...')
       const { error: updatePasswordError } = await supabase.auth.admin.updateUserById(authUser.id, {
         password: token,
         user_metadata: {
@@ -181,64 +163,65 @@ export async function POST(request: NextRequest) {
       })
 
       if (updatePasswordError) {
-        console.error('Auth update error:', updatePasswordError)
+        console.error('❌ [verify-token] Auth update error:', updatePasswordError)
       }
     }
 
     // Синхронизируем профиль в таблице users
+    console.log('👤 [verify-token] Syncing user profile...')
     let userData = null
 
-    if (existingProfileByTelegram) {
+    // Проверяем есть ли уже пользователь
+    if (existingProfileByTelegram && existingProfileByTelegram.id === authUser.id) {
+      console.log('✅ [verify-token] Profile already in sync')
       userData = existingProfileByTelegram
-    }
+    } else if (existingProfileByTelegram && existingProfileByTelegram.id !== authUser.id) {
+      console.log(`🔄 [verify-token] Profile ID mismatch, migrating from ${existingProfileByTelegram.id} to ${authUser.id}`)
+      const oldId = existingProfileByTelegram.id
 
-    if (existingProfileByTelegram) {
-      if (existingProfileByTelegram.id !== authUser.id) {
-        const oldId = existingProfileByTelegram.id
+      const relationsToUpdate = [
+        { table: 'codes', column: 'used_by' },
+        { table: 'referrals', column: 'referrer_id' },
+        { table: 'referrals', column: 'referred_id' },
+        { table: 'transactions', column: 'user_id' },
+        { table: 'payments', column: 'user_id' },
+      ]
 
-        const relationsToUpdate = [
-          { table: 'codes', column: 'used_by' },
-          { table: 'referrals', column: 'referrer_id' },
-          { table: 'referrals', column: 'referred_id' },
-          { table: 'transactions', column: 'user_id' },
-          { table: 'payments', column: 'user_id' },
-        ]
+      for (const relation of relationsToUpdate) {
+        const { error: relationError } = await supabase
+          .from(relation.table)
+          .update({ [relation.column]: authUser.id })
+          .eq(relation.column, oldId)
 
-        for (const relation of relationsToUpdate) {
-          const { error: relationError } = await supabase
-            .from(relation.table)
-            .update({ [relation.column]: authUser.id })
-            .eq(relation.column, oldId)
-
-          if (relationError) {
-            console.error(`Failed to migrate ${relation.table}.${relation.column}`, relationError)
-            return NextResponse.json(
-              { error: 'Ошибка синхронизации данных пользователя' },
-              { status: 500 }
-            )
-          }
-        }
-
-        const { data: migratedProfile, error: migrateError } = await supabase
-          .from('users')
-          .update({ id: authUser.id })
-          .eq('id', oldId)
-          .select()
-          .single()
-
-        if (migrateError) {
-          console.error('Profile migration error:', migrateError)
+        if (relationError) {
+          console.error(`❌ [verify-token] Failed to migrate ${relation.table}.${relation.column}`, relationError)
           return NextResponse.json(
-            { error: 'Ошибка синхронизации профиля пользователя' },
+            { error: 'Ошибка синхронизации данных пользователя', details: relationError.message },
             { status: 500 }
           )
         }
-
-        userData = migratedProfile
-      } else {
-        userData = existingProfileByTelegram
       }
+
+      const { data: migratedProfile, error: migrateError } = await supabase
+        .from('users')
+        .update({ id: authUser.id })
+        .eq('id', oldId)
+        .select()
+        .single()
+
+      if (migrateError) {
+        console.error('❌ [verify-token] Profile migration error:', migrateError)
+        return NextResponse.json(
+          { error: 'Ошибка синхронизации профиля пользователя', details: migrateError.message },
+          { status: 500 }
+        )
+      }
+
+      userData = migratedProfile
+      console.log('✅ [verify-token] Profile migrated')
     } else {
+      // Профиля совсем нет - создаем новый
+      console.log('🆕 [verify-token] Creating new profile for auth user:', authUser.id)
       const { data: createdProfile, error: createProfileError } = await supabase
         .from('users')
         .insert({
@@ -249,14 +232,15 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (createProfileError || !createdProfile) {
-        console.error('Profile creation error:', createProfileError)
+        console.error('❌ [verify-token] Profile creation error:', createProfileError)
         return NextResponse.json(
-          { error: 'Ошибка при создании профиля пользователя' },
+          { error: 'Ошибка при создании профиля пользователя', details: createProfileError?.message },
           { status: 500 }
         )
       }
 
       userData = createdProfile
+      console.log('✅ [verify-token] Profile created:', userData.id)
     }
 
     // Гарантируем, что telegram_id актуален
