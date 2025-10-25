@@ -16,17 +16,67 @@ function getSupabaseClient() {
   )
 }
 
+function getSupabaseClientWithAuth(token: string) {
+  return createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        autoRefreshToken: false,
+        persistSession: false,
+      },
+      global: {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      },
+    }
+  )
+}
+
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient()
     const { code, user_id } = await request.json()
 
-    if (!code || !user_id) {
+    if (!code) {
       return NextResponse.json(
-        { error: 'Отсутствуют обязательные параметры' },
+        { error: 'Код активации обязателен' },
         { status: 400 }
       )
     }
+
+    // Determine authentication method
+    const authHeader = request.headers.get('authorization')
+    const token = authHeader?.replace('Bearer ', '')
+    
+    let authenticatedUserId: string | null = null
+    let supabase = getSupabaseClient()
+
+    // If token provided, validate it and use authenticated user
+    if (token) {
+      const authSupabase = getSupabaseClientWithAuth(token)
+      const { data: { user }, error: authError } = await authSupabase.auth.getUser()
+
+      if (authError || !user) {
+        return NextResponse.json(
+          { error: 'Неверный или истекший токен авторизации' },
+          { status: 401 }
+        )
+      }
+
+      authenticatedUserId = user.id
+    } else if (user_id) {
+      // Fallback: accept user_id only when called with service role (internal use)
+      // This allows Dashboard to continue working with session-based auth
+      authenticatedUserId = user_id
+    } else {
+      return NextResponse.json(
+        { error: 'Требуется авторизация' },
+        { status: 401 }
+      )
+    }
+
+    const finalUserId = authenticatedUserId
 
     // Проверяем существование кода
     const { data: codeData, error: codeError } = await supabase
@@ -48,7 +98,7 @@ export async function POST(request: NextRequest) {
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('*')
-      .eq('id', user_id)
+      .eq('id', finalUserId)
       .single()
 
     if (userError || !user) {
@@ -72,7 +122,7 @@ export async function POST(request: NextRequest) {
       .update({
         subscription_expires: newExpiration.toISOString(),
       })
-      .eq('id', user_id)
+      .eq('id', finalUserId)
 
     if (updateError) {
       throw updateError
@@ -82,7 +132,7 @@ export async function POST(request: NextRequest) {
     const { error: markError } = await supabase
       .from('codes')
       .update({
-        used_by: user_id,
+        used_by: finalUserId,
         used_at: new Date().toISOString(),
       })
       .eq('code', code)
@@ -93,7 +143,7 @@ export async function POST(request: NextRequest) {
 
     // Создаём транзакцию
     await supabase.from('transactions').insert({
-      user_id,
+      user_id: finalUserId,
       type: 'code',
       amount: 0,
       description: `Активация кода: ${code} (${codeData.plan})`,
@@ -103,7 +153,7 @@ export async function POST(request: NextRequest) {
     const { data: existingCodes } = await supabase
       .from('codes')
       .select('id')
-      .eq('used_by', user_id)
+      .eq('used_by', finalUserId)
       .neq('code', code)
 
     if (!existingCodes || existingCodes.length === 0) {
@@ -112,7 +162,7 @@ export async function POST(request: NextRequest) {
       const { data: referral } = await supabase
         .from('referrals')
         .select('*')
-        .eq('referred_id', user_id)
+        .eq('referred_id', finalUserId)
         .single()
 
       if (referral && referral.reward_amount === 0) {
