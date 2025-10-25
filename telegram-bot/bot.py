@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 BOT_TOKEN = "8477147639:AAG6Q8iTsJf0rAgw3rKOC0-4GKpjcjKUFH8"
 SUPABASE_URL = "https://ftqpccuyibzdczzowzkw.supabase.co"
 SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0cXBjY3V5aWJ6ZGN6em93emt3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjEzMzM0MDMsImV4cCI6MjA3NjkwOTQwM30.nOjm7wqBUHJQ1-1lX6OpsauHP56SiokB7haiC0sxW7g"
-DASHBOARD_URL = "https://outliviondashboard-kjtc8q3c5-outtime.vercel.app"  # Замените на ваш URL
+DASHBOARD_URL = "https://outliviondashboard.vercel.app"  # Замените на ваш URL
 
 
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
