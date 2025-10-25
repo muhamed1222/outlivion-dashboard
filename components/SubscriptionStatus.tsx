@@ -21,21 +21,37 @@ function getDayWord(days: number): string {
 
 export function SubscriptionStatus({ user, className }: SubscriptionStatusProps) {
   const status = getSubscriptionStatus(user)
-  
-  const getBadgeColor = () => {
-    if (status.isExpired) return 'bg-rose-100 text-rose-700'
-    if (status.isTrial) return 'bg-yellow-100 text-yellow-700'
-    if (status.daysRemaining <= 3) return 'bg-orange-100 text-orange-700'
-    return 'bg-green-100 text-green-700'
+
+  const getBadgeAppearance = () => {
+    if (status.isExpired) {
+      return {
+        container: 'border border-rose-100 bg-rose-50 text-rose-600',
+        indicator: 'bg-rose-500',
+      }
+    }
+
+    if (status.isTrial) {
+      return {
+        container: 'border border-amber-100 bg-amber-50 text-amber-700',
+        indicator: 'bg-amber-500',
+      }
+    }
+
+    if (status.daysRemaining <= 3) {
+      return {
+        container: 'border border-orange-100 bg-orange-50 text-orange-700',
+        indicator: 'bg-orange-500',
+      }
+    }
+
+    return {
+      container: 'border border-emerald-100 bg-emerald-50 text-emerald-600',
+      indicator: 'bg-emerald-500',
+    }
   }
   
-  const getIcon = () => {
-    if (status.isExpired) return '❌'
-    if (status.isTrial) return '🎁'
-    if (status.daysRemaining <= 3) return '⚠️'
-    return '✅'
-  }
-  
+  const badgeAppearance = getBadgeAppearance()
+
   const getStatusText = () => {
     if (status.isExpired) return 'Истекла'
     if (status.isTrial) return 'Пробный период'
@@ -50,8 +66,17 @@ export function SubscriptionStatus({ user, className }: SubscriptionStatusProps)
           <CardTitle className="text-base font-semibold text-foreground">
             Подписка
           </CardTitle>
-          <span className={cn('rounded-pill px-3 py-1 text-xs font-medium', getBadgeColor())}>
-            {getIcon()} {getStatusText()}
+          <span
+            className={cn(
+              'inline-flex items-center gap-2 rounded-full px-3 py-1 text-sm font-medium',
+              badgeAppearance.container
+            )}
+          >
+            <span
+              aria-hidden
+              className={cn('h-2.5 w-2.5 rounded-full', badgeAppearance.indicator)}
+            />
+            {getStatusText()}
           </span>
         </div>
       </CardHeader>

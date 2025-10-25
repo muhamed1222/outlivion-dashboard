@@ -50,10 +50,10 @@ export default async function DashboardPage() {
         <Card>
           <CardHeader className="flex flex-row items-start justify-between gap-4 pb-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wide text-foreground-subtle">Баланс</p>
+              <p className="text-sm font-semibold uppercase tracking-wide text-foreground-muted">Баланс</p>
               <h1 className="mt-2 text-3xl font-semibold text-foreground">{formatCurrency(balance)}</h1>
             </div>
-            <div className="rounded-card bg-accent-soft px-3 py-1.5 text-xs font-medium text-accent">
+            <div className="rounded-card bg-accent-soft px-3 py-1.5 text-sm font-medium text-accent">
               {isActive ? 'Подписка активна' : 'Подписка приостановлена'}
             </div>
           </CardHeader>
@@ -103,7 +103,7 @@ export default async function DashboardPage() {
                 className="group flex flex-col gap-1.5 rounded-card border border-transparent bg-background p-4 shadow-soft transition hover:border-accent hover:bg-accent-soft"
               >
                 <span className="text-sm font-medium text-foreground">{item.title}</span>
-                <span className="text-xs text-foreground-muted">{item.description}</span>
+                <span className="text-sm text-foreground-muted">{item.description}</span>
               </Link>
             ))}
           </div>

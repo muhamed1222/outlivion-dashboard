@@ -4,31 +4,37 @@ import { cn } from '@/lib/utils'
 export interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'primary' | 'secondary' | 'outline' | 'ghost'
   size?: 'sm' | 'md' | 'lg'
+  shape?: 'pill' | 'card'
   isLoading?: boolean
 }
 
 const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', isLoading, children, disabled, ...props }, ref) => {
+  ({ className, variant = 'primary', size = 'md', shape = 'pill', isLoading, children, disabled, ...props }, ref) => {
     const baseStyles =
-      'inline-flex items-center justify-center rounded-pill font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60 disabled:pointer-events-none'
-    
+      'inline-flex items-center justify-center font-medium transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:opacity-60 disabled:pointer-events-none'
+
     const variants = {
       primary: 'bg-accent text-white shadow-soft hover:bg-accent-hover',
       secondary: 'bg-accent-soft text-accent hover:bg-accent-soft/70 shadow-soft',
       outline: 'border border-border bg-background-surface text-foreground hover:border-accent hover:text-accent',
       ghost: 'text-foreground-muted hover:bg-accent-soft/60',
     }
-    
+
     const sizes = {
       sm: 'h-9 px-4 text-sm',
       md: 'h-11 px-6 text-sm',
       lg: 'h-12 px-8 text-base',
     }
-    
+
+    const shapes = {
+      pill: 'rounded-pill',
+      card: 'rounded-card',
+    }
+
     return (
       <button
         ref={ref}
-        className={cn(baseStyles, variants[variant], sizes[size], className)}
+        className={cn(baseStyles, shapes[shape], variants[variant], sizes[size], className)}
         disabled={disabled || isLoading}
         {...props}
       >

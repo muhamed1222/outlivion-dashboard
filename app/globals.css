@@ -18,7 +18,14 @@
 
 @layer utilities {
   .container-dashboard {
-    @apply mx-auto px-5;
-    max-width: 820px;
+    @apply mx-auto w-full px-5;
+    max-width: 1160px;
+  }
+}
+
+@screen xl {
+  .container-dashboard {
+    @apply px-8;
+    max-width: 1240px;
   }
 }

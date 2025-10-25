@@ -113,20 +113,31 @@ export function Navbar() {
 
   return (
     <>
+      {isMenuOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-background/70 backdrop-blur-sm transition lg:hidden"
+          onClick={() => setIsMenuOpen(false)}
+          aria-hidden="true"
+        />
+      )}
+
       {/* Mobile top bar */}
-      <nav className="border-b border-border bg-background lg:hidden">
+      <nav className="relative border-b border-border bg-background lg:hidden">
         <div className="container-dashboard">
           <div className="flex h-16 items-center justify-between gap-3">
             <Link href="/dashboard" className="flex items-center gap-3">
               <LogoMark />
               <div>
                 <p className="text-base font-semibold text-foreground">Outlivion</p>
-                <p className="text-xs text-foreground-subtle">Личный кабинет</p>
+                <p className="text-sm text-foreground-muted">Личный кабинет</p>
               </div>
             </Link>
             <button
               onClick={() => setIsMenuOpen((prev) => !prev)}
-              className="flex items-center gap-3 rounded-pill bg-background-surface px-4 py-2 text-sm font-medium text-foreground shadow-soft transition hover:bg-accent-soft"
+              className="flex items-center gap-3 rounded-card bg-background-surface px-4 py-2 text-sm font-medium text-foreground shadow-soft transition hover:bg-accent-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-navigation"
+              aria-haspopup="menu"
             >
               <span>{userName}</span>
               <ChevronDownIcon className={cn('text-foreground-subtle transition-transform', isMenuOpen && 'rotate-180')} />
@@ -135,7 +146,11 @@ export function Navbar() {
         </div>
 
         {isMenuOpen && (
-          <div className="border-t border-border bg-background-surface p-3 shadow-soft">
+          <div
+            id="mobile-navigation"
+            role="menu"
+            className="absolute inset-x-0 top-full z-50 border-t border-border bg-background-surface p-3 shadow-soft"
+          >
             <div className="space-y-2">
               {navigation.map((item) => {
                 const Icon = item.icon
@@ -146,9 +161,10 @@ export function Navbar() {
                     href={item.href}
                     onClick={() => setIsMenuOpen(false)}
                     className={cn(
-                      'flex items-center gap-3 rounded-card px-3 py-2 text-sm transition',
+                      'flex items-center gap-3 rounded-card px-3 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                       isActive ? 'bg-accent-soft text-accent' : 'text-foreground-muted hover:bg-accent-soft'
                     )}
+                    role="menuitem"
                   >
                     <Icon className="h-5 w-5" />
                     {item.name}
@@ -161,7 +177,8 @@ export function Navbar() {
                 setIsMenuOpen(false)
                 handleSignOut()
               }}
-              className="mt-3 flex w-full items-center gap-3 rounded-card px-3 py-2 text-sm text-rose-500 transition hover:bg-rose-50"
+              className="mt-3 flex w-full items-center gap-3 rounded-card px-3 py-2 text-sm text-rose-500 transition hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+              role="menuitem"
             >
               <ArrowRightOnRectangleIcon className="h-5 w-5" />
               Выйти
@@ -179,12 +196,12 @@ export function Navbar() {
             </div>
             <div>
               <p className="text-base font-semibold text-foreground">Outlivion</p>
-              <p className="text-xs text-foreground-subtle">Личный кабинет</p>
+              <p className="text-sm text-foreground-muted">Личный кабинет</p>
             </div>
           </Link>
 
           <div className="space-y-3">
-            <p className="px-2 text-[11px] font-medium uppercase tracking-wide text-foreground-subtle">Навигация</p>
+            <p className="px-2 text-xs font-medium uppercase tracking-wide text-foreground-subtle">Навигация</p>
             <nav className="space-y-1.5">
               {navigation.map((item) => {
                 const Icon = item.icon
@@ -194,7 +211,7 @@ export function Navbar() {
                     key={item.href}
                     href={item.href}
                     className={cn(
-                      'flex items-center gap-3 rounded-card px-3 py-2 text-sm transition',
+                      'flex items-center gap-3 rounded-card px-3 py-2 text-sm transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                       isActive ? 'bg-accent text-white shadow-soft' : 'text-foreground-muted hover:bg-accent-soft'
                     )}
                   >
@@ -207,10 +224,10 @@ export function Navbar() {
           </div>
 
           <div className="mt-auto space-y-2 border-t border-border pt-4">
-            <p className="px-2 text-xs font-medium text-foreground-subtle">{userName}</p>
+            <p className="px-2 text-sm font-medium text-foreground-subtle">{userName}</p>
             <button
               onClick={handleSignOut}
-              className="flex w-full items-center gap-3 rounded-card px-3 py-2 text-sm text-rose-500 transition hover:bg-rose-50"
+              className="flex w-full items-center gap-3 rounded-card px-3 py-2 text-sm text-rose-500 transition hover:bg-rose-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-400/40 focus-visible:ring-offset-2 focus-visible:ring-offset-background"
             >
               <ArrowRightOnRectangleIcon className="h-5 w-5" />
               Выйти

@@ -35,7 +35,7 @@ export function ReferralCard({ referralLink }: ReferralCardProps) {
       </CardHeader>
       <CardContent className="mt-6 flex flex-col gap-4">
         <div className="space-y-2">
-          <p className="text-xs font-medium uppercase tracking-wide text-foreground-subtle">
+          <p className="text-sm font-medium uppercase tracking-wide text-foreground-muted">
             Ваша ссылка
           </p>
           <div className="flex flex-col gap-2 sm:flex-row">
@@ -47,6 +47,7 @@ export function ReferralCard({ referralLink }: ReferralCardProps) {
             />
             <Button
               onClick={handleCopy}
+              shape="card"
               className="shrink-0 px-6"
             >
               {copied ? 'Скопировано' : 'Скопировать'}
