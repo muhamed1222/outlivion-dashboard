@@ -3,6 +3,7 @@
 Полностью автоматическая настройка базы данных Supabase
 """
 
+import os
 import sys
 
 def install_dependencies():
@@ -31,11 +32,18 @@ else:
     sys.exit(1)
 
 # Параметры подключения (прямое подключение)
+PROJECT_REF = os.getenv('SUPABASE_PROJECT_REF', '<project-ref>')
+DB_HOST = os.getenv('SUPABASE_DB_HOST', 'aws-0-eu-central-1.pooler.supabase.com')
+DB_PORT = int(os.getenv('SUPABASE_DB_PORT', '5432'))
+DB_NAME = os.getenv('SUPABASE_DB_NAME', 'postgres')
+DB_USER = os.getenv('SUPABASE_DB_USER', f'postgres.{PROJECT_REF}')
+DASHBOARD_URL = (os.getenv('TELEGRAM_BOT_DASHBOARD_URL') or os.getenv('NEXT_PUBLIC_APP_URL') or 'https://your-dashboard.example.com').rstrip('/')
+
 DB_CONFIG = {
-    'host': 'aws-0-eu-central-1.pooler.supabase.com',
-    'port': 5432,
-    'database': 'postgres',
-    'user': 'postgres.ftqpccuyibzdczzowzkw',
+    'host': DB_HOST,
+    'port': DB_PORT,
+    'database': DB_NAME,
+    'user': DB_USER,
     'password': None,  # Будет запрошен
     'sslmode': 'require'
 }
@@ -152,7 +160,7 @@ BEGIN
   result := json_build_object(
     'success', true,
     'token', new_token::text,
-    'auth_url', 'https://outliviondashboard-kjtc8q3c5-outtime.vercel.app/auth/login?token=' || new_token::text,
+    'auth_url', '{dashboard_url}/auth/login?token=' || new_token::text,
     'expires_at', expires_at
   );
   
@@ -160,6 +168,7 @@ BEGIN
 END;
 $$;
 """
+SQL_FUNCTION = SQL_FUNCTION.format(dashboard_url=DASHBOARD_URL)
 
 def get_password():
     """Получение пароля от пользователя"""
@@ -175,7 +184,7 @@ def get_password():
     print("🔐 Для автоматической настройки нужен пароль от Supabase Database")
     print()
     print("📍 Где найти пароль:")
-    print("   1. Откройте: https://supabase.com/dashboard/project/ftqpccuyibzdczzowzkw/settings/database")
+    print(f"   1. Откройте: https://supabase.com/dashboard/project/{PROJECT_REF}/settings/database")
     print("   2. Найдите раздел 'Connection string'")
     print("   3. Скопируйте пароль из строки подключения")
     print()
@@ -273,4 +282,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-

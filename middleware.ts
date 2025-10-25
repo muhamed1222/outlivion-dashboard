@@ -1,9 +1,8 @@
-import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
+import { updateSession } from '@/lib/supabase/middleware'
 
-// Минимальный middleware без async операций
-export function middleware(request: NextRequest) {
-  return NextResponse.next()
+export async function middleware(request: NextRequest) {
+  return updateSession(request)
 }
 
 export const config = {
@@ -11,4 +10,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
-

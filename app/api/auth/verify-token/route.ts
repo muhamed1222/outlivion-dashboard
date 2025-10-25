@@ -42,34 +42,15 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Токен истёк' }, { status: 401 })
     }
 
-    // Получаем или создаём пользователя
-    const { data: user, error: userError } = await supabase
-      .from('users')
-      .select('*')
-      .eq('telegram_id', authToken.telegram_id)
-      .single()
+    const email = `${authToken.telegram_id}@outlivion.local`
 
-    let userData = user
+    // Получаем или создаём пользователя в Supabase Auth
+    const { data: existingAuthUser } = await supabase.auth.admin.getUserByEmail(email)
+    let authUser = existingAuthUser?.user ?? null
 
-    if (userError || !userData) {
-      // Создаём нового пользователя
-      const { data: newUser, error: createError } = await supabase
-        .from('users')
-        .insert({
-          telegram_id: authToken.telegram_id,
-        })
-        .select()
-        .single()
-
-      if (createError) {
-        throw createError
-      }
-
-      userData = newUser
-
-      // Создаём пользователя в Supabase Auth
-      const { error: authError } = await supabase.auth.admin.createUser({
-        email: `${authToken.telegram_id}@outlivion.local`,
+    if (!authUser) {
+      const { data: createdAuthUser, error: authCreateError } = await supabase.auth.admin.createUser({
+        email,
         password: token,
         email_confirm: true,
         user_metadata: {
@@ -77,20 +58,116 @@ export async function POST(request: NextRequest) {
         },
       })
 
-      if (authError) {
-        console.error('Auth creation error:', authError)
+      if (authCreateError || !createdAuthUser?.user) {
+        console.error('Auth creation error:', authCreateError)
+        return NextResponse.json({ error: 'Не удалось создать пользователя' }, { status: 500 })
+      }
+
+      authUser = createdAuthUser.user
+    } else {
+      const { error: updatePasswordError } = await supabase.auth.admin.updateUserById(authUser.id, {
+        password: token,
+        user_metadata: {
+          telegram_id: authToken.telegram_id,
+        },
+      })
+
+      if (updatePasswordError) {
+        console.error('Auth update error:', updatePasswordError)
+      }
+    }
+
+    if (!authUser) {
+      return NextResponse.json({ error: 'Не удалось синхронизировать пользователя' }, { status: 500 })
+    }
+
+    // Синхронизируем профиль в таблице users
+    let userData = null
+
+    const { data: existingProfileByTelegram } = await supabase
+      .from('users')
+      .select('*')
+      .eq('telegram_id', authToken.telegram_id)
+      .maybeSingle()
+
+    if (existingProfileByTelegram) {
+      if (existingProfileByTelegram.id !== authUser.id) {
+        const oldId = existingProfileByTelegram.id
+
+        const relationsToUpdate = [
+          { table: 'codes', column: 'used_by' },
+          { table: 'referrals', column: 'referrer_id' },
+          { table: 'referrals', column: 'referred_id' },
+          { table: 'transactions', column: 'user_id' },
+          { table: 'payments', column: 'user_id' },
+        ]
+
+        for (const relation of relationsToUpdate) {
+          const { error: relationError } = await supabase
+            .from(relation.table)
+            .update({ [relation.column]: authUser.id })
+            .eq(relation.column, oldId)
+
+          if (relationError) {
+            console.error(`Failed to migrate ${relation.table}.${relation.column}`, relationError)
+            return NextResponse.json(
+              { error: 'Ошибка синхронизации данных пользователя' },
+              { status: 500 }
+            )
+          }
+        }
+
+        const { data: migratedProfile, error: migrateError } = await supabase
+          .from('users')
+          .update({ id: authUser.id })
+          .eq('id', oldId)
+          .select()
+          .single()
+
+        if (migrateError) {
+          console.error('Profile migration error:', migrateError)
+          return NextResponse.json(
+            { error: 'Ошибка синхронизации профиля пользователя' },
+            { status: 500 }
+          )
+        }
+
+        userData = migratedProfile
+      } else {
+        userData = existingProfileByTelegram
       }
     } else {
-      // Обновляем пароль существующего пользователя
-      const { error: updateError } = await supabase.auth.admin.updateUserById(
-        userData.id,
-        {
-          password: token,
-        }
-      )
+      const { data: createdProfile, error: createProfileError } = await supabase
+        .from('users')
+        .insert({
+          id: authUser.id,
+          telegram_id: authToken.telegram_id,
+        })
+        .select()
+        .single()
 
-      if (updateError) {
-        console.error('Auth update error:', updateError)
+      if (createProfileError || !createdProfile) {
+        console.error('Profile creation error:', createProfileError)
+        return NextResponse.json(
+          { error: 'Ошибка при создании профиля пользователя' },
+          { status: 500 }
+        )
+      }
+
+      userData = createdProfile
+    }
+
+    // Гарантируем, что telegram_id актуален
+    if (userData.telegram_id !== authToken.telegram_id) {
+      const { data: alignedProfile, error: alignError } = await supabase
+        .from('users')
+        .update({ telegram_id: authToken.telegram_id })
+        .eq('id', authUser.id)
+        .select()
+        .single()
+
+      if (!alignError && alignedProfile) {
+        userData = alignedProfile
       }
     }
 
@@ -109,4 +186,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

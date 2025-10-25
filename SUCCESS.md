@@ -39,8 +39,8 @@
 
 ## 🚀 Ссылки
 
-- **Dashboard:** https://outliviondashboard-kjtc8q3c5-outtime.vercel.app
-- **Supabase:** https://supabase.com/dashboard/project/ftqpccuyibzdczzowzkw
+- **Dashboard:** https://your-dashboard.vercel.app
+- **Supabase:** https://supabase.com/dashboard/project/<project-ref>
 - **Telegram Bot:** @your_bot_username
 
 ---
@@ -211,4 +211,3 @@ cd telegram-bot && python3 bot.py &
 **Дата завершения:** 25 октября 2025  
 **Версия:** 1.0.0 MVP  
 **Статус:** ✅ Production Ready
-

@@ -4,11 +4,19 @@
 Без необходимости пароля PostgreSQL!
 """
 
-import requests
-import json
+import os
+from pathlib import Path
 
-SUPABASE_URL = "https://ftqpccuyibzdczzowzkw.supabase.co"
-SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0cXBjY3V5aWJ6ZGN6em93emt3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MTMzMzQwMywiZXhwIjoyMDc2OTA5NDAzfQ.SUE6yANk72zYF9c3m-HQqHSE2HXqq200_yMxuaaq1ko"
+SUPABASE_URL = os.getenv("TELEGRAM_BOT_SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL", "")
+PROJECT_REF = os.getenv("SUPABASE_PROJECT_REF")
+
+if not PROJECT_REF and SUPABASE_URL:
+    try:
+        PROJECT_REF = SUPABASE_URL.replace("https://", "").split(".")[0]
+    except IndexError:
+        PROJECT_REF = "<your-project-ref>"
+elif not PROJECT_REF:
+    PROJECT_REF = "<your-project-ref>"
 
 print("=" * 80)
 print("🚀 СОЗДАНИЕ SQL ФАЙЛА ДЛЯ ИМПОРТА")
@@ -16,15 +24,18 @@ print("=" * 80)
 print()
 
 # Создаём единый SQL файл со всем необходимым
-full_sql = open('/Users/outcasts/Documents/outlivion-dashboard/supabase/schema.sql', 'r').read()
-function_sql = open('/Users/outcasts/Documents/outlivion-dashboard/supabase/generate_token_function.sql', 'r').read()
+base_dir = Path(__file__).resolve().parent
+schema_path = base_dir / 'supabase' / 'schema.sql'
+function_path = base_dir / 'supabase' / 'generate_token_function.sql'
+
+full_sql = schema_path.read_text()
+function_sql = function_path.read_text()
 
 complete_sql = full_sql + "\n\n" + function_sql
 
 # Сохраняем в файл для импорта
-output_file = '/Users/outcasts/Documents/outlivion-dashboard/supabase/complete_setup.sql'
-with open(output_file, 'w') as f:
-    f.write(complete_sql)
+output_file = base_dir / 'supabase' / 'complete_setup.sql'
+output_file.write_text(complete_sql)
 
 print(f"✅ SQL файл создан: {output_file}")
 print()
@@ -33,7 +44,7 @@ print("📋 ИНСТРУКЦИЯ ПО ИМПОРТУ")
 print("=" * 80)
 print()
 print("1. Откройте Supabase SQL Editor:")
-print("   https://supabase.com/dashboard/project/ftqpccuyibzdczzowzkw/sql/new")
+print(f"   https://supabase.com/dashboard/project/{PROJECT_REF}/sql/new")
 print()
 print("2. Скопируйте содержимое файла:")
 print(f"   cat {output_file}")
@@ -57,4 +68,3 @@ print()
 print(complete_sql)
 print()
 print("=" * 80)
-

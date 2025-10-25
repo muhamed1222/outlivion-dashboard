@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
-import { formatCurrency, getDaysRemaining, isSubscriptionActive } from '@/lib/utils'
+import { formatCurrency, isSubscriptionActive } from '@/lib/utils'
 import { ReferralCard } from '@/components/ReferralCard'
 
 export const dynamic = 'force-dynamic'
@@ -32,7 +32,6 @@ export default async function DashboardPage() {
   const balance = userData?.balance || 0
   const subscriptionExpires = userData?.subscription_expires
   const plan = userData?.plans
-  const daysRemaining = getDaysRemaining(subscriptionExpires)
   const isActive = isSubscriptionActive(subscriptionExpires)
 
   const referralLink = `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL?.replace('https://t.me/', '') || 'outlivionbot'}?start=${userData?.telegram_id}`
@@ -86,4 +85,3 @@ export default async function DashboardPage() {
     </div>
   )
 }
-

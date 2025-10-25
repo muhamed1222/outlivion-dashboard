@@ -2,10 +2,16 @@
 
 # Автоматическое обновление SQL функции в Supabase
 
-SUPABASE_URL="https://ftqpccuyibzdczzowzkw.supabase.co"
-SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0cXBjY3V5aWJ6ZGN6em93emt3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MTMzMzQwMywiZXhwIjoyMDc2OTA5NDAzfQ.SUE6yANk72zYF9c3m-HQqHSE2HXqq200_yMxuaaq1ko"
+SUPABASE_URL="${TELEGRAM_BOT_SUPABASE_URL:-${NEXT_PUBLIC_SUPABASE_URL:-}}"
+SUPABASE_SERVICE_ROLE_KEY="${TELEGRAM_BOT_SUPABASE_SERVICE_KEY:-${SUPABASE_SERVICE_ROLE_KEY:-}}"
+DASHBOARD_URL="${TELEGRAM_BOT_DASHBOARD_URL:-${NEXT_PUBLIC_APP_URL:-https://your-dashboard.example.com}}"
 
-SQL=$(cat << 'EOF'
+if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_SERVICE_ROLE_KEY" ]; then
+  echo "❌ Не заданы переменные TELEGRAM_BOT_SUPABASE_URL/NEXT_PUBLIC_SUPABASE_URL или TELEGRAM_BOT_SUPABASE_SERVICE_KEY/SUPABASE_SERVICE_ROLE_KEY"
+  exit 1
+fi
+
+SQL=$(cat <<'EOF'
 CREATE OR REPLACE FUNCTION generate_auth_token(tg_id BIGINT)
 RETURNS JSON
 LANGUAGE plpgsql
@@ -28,7 +34,7 @@ BEGIN
   result := json_build_object(
     'success', true,
     'token', new_token::text,
-    'auth_url', 'https://outliviondashboard.vercel.app/auth/login?token=' || new_token::text,
+    'auth_url', '__DASHBOARD_URL__/auth/login?token=' || new_token::text,
     'expires_at', expires_at
   );
   
@@ -37,6 +43,8 @@ END;
 $$;
 EOF
 )
+
+SQL=${SQL/__DASHBOARD_URL__/${DASHBOARD_URL%/}}
 
 echo "📝 Обновление функции generate_auth_token в Supabase..."
 
@@ -48,4 +56,3 @@ curl -X POST "${SUPABASE_URL}/rest/v1/rpc/exec" \
 
 echo ""
 echo "✅ Готово!"
-

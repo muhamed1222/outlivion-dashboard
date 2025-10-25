@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import { Button } from '@/components/ui/Button'
 
 const navigation = [
   { name: '🏠 Главная', href: '/dashboard' },
@@ -107,4 +106,3 @@ export function Navbar() {
     </nav>
   )
 }
-

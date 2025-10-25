@@ -119,15 +119,24 @@ export async function POST(request: NextRequest) {
         // Начисляем бонус рефереру
         const REFERRAL_BONUS = 50 // 50 рублей
 
-        await supabase
+        const { data: referrer } = await supabase
+          .from('users')
+          .select('balance')
+          .eq('id', referral.referrer_id)
+          .single()
+
+        const currentBalance = Number(referrer?.balance ?? 0)
+
+        const { error: balanceUpdateError } = await supabase
           .from('users')
           .update({
-            balance: supabase.rpc('increment_balance', {
-              user_id: referral.referrer_id,
-              amount: REFERRAL_BONUS,
-            }),
+            balance: currentBalance + REFERRAL_BONUS,
           })
           .eq('id', referral.referrer_id)
+
+        if (balanceUpdateError) {
+          throw balanceUpdateError
+        }
 
         await supabase
           .from('referrals')
@@ -156,4 +165,3 @@ export async function POST(request: NextRequest) {
     )
   }
 }
-

@@ -3,11 +3,19 @@
 Автоматическая настройка базы данных Supabase
 """
 
-import requests
-import json
+import os
 
-SUPABASE_URL = "https://ftqpccuyibzdczzowzkw.supabase.co"
-SUPABASE_SERVICE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0cXBjY3V5aWJ6ZGN6em93emt3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MTMzMzQwMywiZXhwIjoyMDc2OTA5NDAzfQ.SUE6yANk72zYF9c3m-HQqHSE2HXqq200_yMxuaaq1ko"
+SUPABASE_URL = os.getenv("TELEGRAM_BOT_SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL", "")
+PROJECT_REF = os.getenv("SUPABASE_PROJECT_REF")
+DASHBOARD_URL = os.getenv("TELEGRAM_BOT_DASHBOARD_URL") or os.getenv("NEXT_PUBLIC_APP_URL") or "https://your-dashboard.example.com"
+
+if not PROJECT_REF and SUPABASE_URL:
+    try:
+        PROJECT_REF = SUPABASE_URL.replace("https://", "").split(".")[0]
+    except IndexError:
+        PROJECT_REF = "<your-project-ref>"
+elif not PROJECT_REF:
+    PROJECT_REF = "<your-project-ref>"
 
 # SQL для создания таблиц
 sql_schema = """
@@ -119,7 +127,7 @@ BEGIN
   result := json_build_object(
     'success', true,
     'token', new_token::text,
-    'auth_url', 'https://outliviondashboard-kjtc8q3c5-outtime.vercel.app/auth/login?token=' || new_token::text,
+    'auth_url', concat('%(dashboard_url)s/auth/login?token=', new_token::text),
     'expires_at', expires_at
   );
   
@@ -130,15 +138,8 @@ $$;
 
 def execute_sql(sql):
     """Выполнение SQL через Supabase REST API"""
-    url = f"{SUPABASE_URL}/rest/v1/rpc/exec_sql"
-    headers = {
-        "apikey": SUPABASE_SERVICE_KEY,
-        "Authorization": f"Bearer {SUPABASE_SERVICE_KEY}",
-        "Content-Type": "application/json"
-    }
-    
-    # Пробуем через прямой SQL query endpoint
-    # Supabase не имеет прямого SQL endpoint, поэтому используем psycopg2
+    # Supabase не предоставляет REST API для выполнения произвольного SQL,
+    # поэтому выводим инструкции для ручного ввода
     try:
         import psycopg2
         from urllib.parse import urlparse
@@ -161,7 +162,7 @@ def main():
     print("⚠️  К сожалению, Supabase не предоставляет REST API для выполнения произвольного SQL.")
     print("📋 Вам нужно выполнить SQL вручную в Supabase Dashboard.")
     print()
-    print("🔗 Откройте: https://supabase.com/dashboard/project/ftqpccuyibzdczzowzkw/sql/new")
+    print(f"🔗 Откройте: https://supabase.com/dashboard/project/{PROJECT_REF}/sql/new")
     print()
     print("=" * 80)
     print("📝 ШАГ 1: Скопируйте и выполните этот SQL:")
@@ -173,10 +174,9 @@ def main():
     print("📝 ШАГ 2: Затем скопируйте и выполните этот SQL:")
     print("=" * 80)
     print()
-    print(sql_function)
+    print(sql_function % {"dashboard_url": DASHBOARD_URL.rstrip('/')})
     print()
     print("✅ После выполнения обоих SQL скриптов бот будет готов к работе!")
 
 if __name__ == "__main__":
     main()
-

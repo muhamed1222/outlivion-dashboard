@@ -2,7 +2,7 @@
 
 ## ✅ Что у вас уже есть:
 
-- ✅ Токен бота: `8477147639:AAG6Q8iTsJf0rAgw3rKOC0-4GKpjcjKUFH8`
+- ✅ Токен бота: `<TELEGRAM_BOT_TOKEN>`
 - ✅ Supabase проект настроен
 - ✅ Dashboard задеплоен на Vercel
 - ✅ Код бота создан
@@ -33,20 +33,20 @@ supabase login
 
 # 3. Свяжите проект
 cd /Users/outcasts/Documents/outlivion-dashboard
-supabase link --project-ref ftqpccuyibzdczzowzkw
+supabase link --project-ref <project-ref>
 
 # 4. Задеплойте Edge Function
-supabase functions deploy get-token --project-ref ftqpccuyibzdczzowzkw
+supabase functions deploy get-token --project-ref <project-ref>
 
 # 5. Установите переменные окружения для функции
-supabase secrets set DASHBOARD_URL=https://your-vercel-url.vercel.app --project-ref ftqpccuyibzdczzowzkw
+supabase secrets set DASHBOARD_URL=https://your-vercel-url.vercel.app --project-ref <project-ref>
 ```
 
 ### Вариант Б: Вручную через Supabase Dashboard (если CLI не работает)
 
 Если у вас проблемы с CLI, можно **временно использовать альтернативный метод**:
 
-1. Откройте Supabase Dashboard: https://supabase.com/dashboard/project/ftqpccuyibzdczzowzkw/sql
+1. Откройте Supabase Dashboard: https://supabase.com/dashboard/project/<project-ref>/sql
 2. Выполните этот SQL для создания токенов напрямую:
 
 ```sql
@@ -205,4 +205,3 @@ SELECT * FROM auth_tokens ORDER BY created_at DESC LIMIT 10;
 **Поздравляем! Ваш Telegram бот готов! 🎉**
 
 Теперь пользователи могут авторизоваться через Telegram и использовать ваш VPN Dashboard!
-

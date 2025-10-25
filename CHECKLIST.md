@@ -11,9 +11,9 @@
 
 Убедитесь, что в Vercel → Settings → Environment Variables добавлены:
 
-- [ ] `NEXT_PUBLIC_SUPABASE_URL` = https://ftqpccuyibzdczzowzkw.supabase.co
-- [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` = eyJhbGci...
-- [ ] `SUPABASE_SERVICE_ROLE_KEY` = eyJhbGci...
+- [ ] `NEXT_PUBLIC_SUPABASE_URL` = https://<project-ref>.supabase.co
+- [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` = <supabase-anon-key>
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` = <supabase-service-role-key>
 - [ ] `NEXT_PUBLIC_TELEGRAM_BOT_URL` = https://t.me/outlivionbot
 - [ ] `NEXT_PUBLIC_SUPPORT_URL` = https://t.me/outlivion_support
 - [ ] `NEXT_PUBLIC_APP_URL` = https://your-domain.vercel.app
@@ -54,17 +54,17 @@ supabase login
 3. Свяжите проект:
 ```bash
 cd /Users/outcasts/Documents/outlivion-dashboard
-supabase link --project-ref ftqpccuyibzdczzowzkw
+supabase link --project-ref <project-ref>
 ```
 
 4. Задеплойте Edge Function:
 ```bash
-supabase functions deploy get-token --project-ref ftqpccuyibzdczzowzkw
+supabase functions deploy get-token --project-ref <project-ref>
 ```
 
 5. Установите переменную окружения для функции:
 ```bash
-supabase secrets set DASHBOARD_URL=https://your-vercel-url.vercel.app --project-ref ftqpccuyibzdczzowzkw
+supabase secrets set DASHBOARD_URL=https://your-vercel-url.vercel.app --project-ref <project-ref>
 ```
 
 ### Код Telegram бота (Python):
@@ -77,7 +77,7 @@ import requests
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
 
-SUPABASE_URL = "https://ftqpccuyibzdczzowzkw.supabase.co"
+SUPABASE_URL = "https://<project-ref>.supabase.co"
 SUPABASE_ANON_KEY = "your-anon-key"
 BOT_TOKEN = "your-bot-token"
 
@@ -249,7 +249,7 @@ vercel logs your-deployment-url
 vercel --prod
 
 # Проверка Supabase Edge Functions
-supabase functions list --project-ref ftqpccuyibzdczzowzkw
+supabase functions list --project-ref <project-ref>
 
 # Локальное тестирование
 npm run dev
@@ -274,4 +274,3 @@ npm run dev
 **Дата:** 24 октября 2025  
 **Проект:** Outlivion Dashboard  
 **Статус:** ✅ Deployed to Production
-

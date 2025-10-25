@@ -18,11 +18,14 @@ cd telegram-bot
 pip3 install -r requirements.txt
 ```
 
-### 3. Настройте бота
+### 3. Настройте переменные окружения
 
-Откройте `bot.py` и измените:
-```python
-DASHBOARD_URL = "https://your-vercel-url.vercel.app"  # Ваш URL из Vercel
+Создайте файл `.env` рядом с `bot.py` или экспортируйте переменные перед запуском:
+```bash
+export TELEGRAM_BOT_TOKEN=your_bot_token
+export TELEGRAM_BOT_SUPABASE_URL=https://<project-ref>.supabase.co
+export TELEGRAM_BOT_SUPABASE_SERVICE_KEY=your_service_role_key
+export TELEGRAM_BOT_DASHBOARD_URL=https://your-vercel-url.vercel.app
 ```
 
 ### 4. Запустите бота
@@ -56,13 +59,13 @@ npm install -g supabase
 supabase login
 
 # Свяжите проект
-supabase link --project-ref ftqpccuyibzdczzowzkw
+supabase link --project-ref <project-ref>
 
 # Задеплойте функцию
-supabase functions deploy get-token --project-ref ftqpccuyibzdczzowzkw
+supabase functions deploy get-token --project-ref <project-ref>
 
 # Установите переменную окружения
-supabase secrets set DASHBOARD_URL=https://your-vercel-url.vercel.app
+supabase secrets set DASHBOARD_URL=https://your-vercel-url.vercel.app --project-ref <project-ref>
 ```
 
 ## 🐳 Запуск в Docker (опционально)
@@ -169,4 +172,3 @@ journalctl -u outlivion-bot -f
 ## 🎉 Готово!
 
 Ваш Telegram бот готов к работе!
-

@@ -4,7 +4,7 @@
 
 ### Шаг 1: Получите пароль от Supabase
 
-1. Откройте: https://supabase.com/dashboard/project/ftqpccuyibzdczzowzkw/settings/database
+1. Откройте: https://supabase.com/dashboard/project/<project-ref>/settings/database
 2. Прокрутите до раздела **"Connection string"**
 3. Нажмите **"Reset database password"** (если пароль не видно)
 4. **Скопируйте пароль**
@@ -74,4 +74,3 @@ SUPABASE_DB_PASSWORD=your_password python3 auto_setup.py
 ---
 
 **Один шаг от запуска! 🚀**
-
