@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyTokenSchema, validateRequest, formatValidationError, checkRateLimit } from '@/lib/validation'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,14 +20,21 @@ function getSupabaseClient() {
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('🔍 [verify-token] Starting token verification...')
+    logger.info({
+      event_type: 'token_verification_started',
+      source: 'verify_token'
+    }, 'Starting token verification')
     
     // Rate limiting: 10 requests per 15 minutes per IP
     const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
     const rateLimit = checkRateLimit(`verify-token:${ip}`, 10, 15 * 60 * 1000)
     
     if (!rateLimit.allowed) {
-      console.error('❌ [verify-token] Rate limit exceeded for IP:', ip)
+      logger.error({
+        event_type: 'rate_limit_exceeded',
+        source: 'verify_token',
+        ip
+      }, 'Rate limit exceeded')
       return NextResponse.json(
         { error: 'Слишком много попыток. Попробуйте позже.' },
         { 
@@ -45,7 +53,11 @@ export async function POST(request: NextRequest) {
     // Validate input
     const validation = validateRequest(verifyTokenSchema, body)
     if (!validation.success) {
-      console.error('❌ [verify-token] Validation error:', validation.error)
+      logger.error({
+        event_type: 'validation_error',
+        source: 'verify_token',
+        validation_error: validation.error
+      }, 'Validation error')
       return NextResponse.json(
         { error: formatValidationError(validation.error) },
         { status: 400 }
@@ -53,10 +65,17 @@ export async function POST(request: NextRequest) {
     }
     
     const { token } = validation.data
-    console.log('📝 [verify-token] Token received:', `${token.substring(0, 8)}...`)
+    logger.info({
+      event_type: 'token_received',
+      source: 'verify_token',
+      token_preview: `${token.substring(0, 8)}...`
+    }, 'Token received')
 
     // Проверяем токен в базе данных
-    console.log('🔎 [verify-token] Looking up token in database...')
+    logger.debug({
+      event_type: 'token_lookup',
+      source: 'verify_token'
+    }, 'Looking up token in database')
     const { data: authToken, error: tokenError } = await supabase
       .from('auth_tokens')
       .select('*')
@@ -64,34 +83,68 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (tokenError) {
-      console.error('❌ [verify-token] Token lookup error:', tokenError)
+      logger.error({
+        event_type: 'token_lookup_error',
+        source: 'verify_token',
+        error: tokenError.message
+      }, 'Token lookup error')
       return NextResponse.json({ error: 'Неверный или истекший токен', details: tokenError.message }, { status: 401 })
     }
 
     if (!authToken) {
-      console.error('❌ [verify-token] Token not found')
+      logger.error({
+        event_type: 'token_not_found',
+        source: 'verify_token'
+      }, 'Token not found')
       return NextResponse.json({ error: 'Неверный или истекший токен' }, { status: 401 })
     }
 
-    console.log('✅ [verify-token] Token found:', { telegram_id: authToken.telegram_id, used: authToken.used, expires_at: authToken.expires_at })
+    logger.info({
+      event_type: 'token_found',
+      source: 'verify_token',
+      telegram_id: authToken.telegram_id,
+      used: authToken.used,
+      expires_at: authToken.expires_at
+    }, 'Token found')
 
     if (authToken.used) {
-      console.error('❌ [verify-token] Token already used')
+      logger.error({
+        event_type: 'token_already_used',
+        source: 'verify_token',
+        telegram_id: authToken.telegram_id
+      }, 'Token already used')
       return NextResponse.json({ error: 'Токен уже использован' }, { status: 401 })
     }
 
     // Проверяем, не истёк ли токен
     if (new Date(authToken.expires_at) < new Date()) {
-      console.error('❌ [verify-token] Token expired:', authToken.expires_at)
+      logger.error({
+        event_type: 'token_expired',
+        source: 'verify_token',
+        telegram_id: authToken.telegram_id,
+        expires_at: authToken.expires_at
+      }, 'Token expired')
       return NextResponse.json({ error: 'Токен истёк' }, { status: 401 })
     }
 
-    console.log('✅ [verify-token] Token is valid, proceeding...')
+    logger.info({
+      event_type: 'token_valid',
+      source: 'verify_token',
+      telegram_id: authToken.telegram_id
+    }, 'Token is valid, proceeding')
 
     const email = `${authToken.telegram_id}@outlivion.local`
-    console.log('📧 [verify-token] Generated email:', email)
+    logger.debug({
+      event_type: 'email_generated',
+      source: 'verify_token',
+      email
+    }, 'Generated email')
 
-    console.log('🔎 [verify-token] Checking existing profile...')
+    logger.debug({
+      event_type: 'profile_check',
+      source: 'verify_token',
+      telegram_id: authToken.telegram_id
+    }, 'Checking existing profile')
     const { data: existingProfileByTelegram, error: profileFetchError } = await supabase
       .from('users')
       .select('*')
@@ -99,14 +152,25 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (profileFetchError) {
-      console.error('❌ [verify-token] Profile fetch error:', profileFetchError)
+      logger.error({
+        event_type: 'profile_fetch_error',
+        source: 'verify_token',
+        telegram_id: authToken.telegram_id,
+        error: profileFetchError.message
+      }, 'Profile fetch error')
       return NextResponse.json(
         { error: 'Ошибка доступа к профилю пользователя', details: profileFetchError.message },
         { status: 500 }
       )
     }
 
-    console.log('✅ [verify-token] Profile check done:', existingProfileByTelegram ? `Found user ${existingProfileByTelegram.id}` : 'No existing profile')
+    logger.info({
+      event_type: 'profile_check_done',
+      source: 'verify_token',
+      telegram_id: authToken.telegram_id,
+      profile_found: !!existingProfileByTelegram,
+      user_id: existingProfileByTelegram?.id
+    }, 'Profile check done')
 
     type AdminUser = NonNullable<
       Awaited<ReturnType<typeof supabase.auth.admin.getUserById>>['data']['user']
@@ -116,19 +180,35 @@ export async function POST(request: NextRequest) {
     let createdAuthUser = false
 
     if (existingProfileByTelegram?.id) {
-      console.log('🔍 [verify-token] Checking auth.users for existing profile ID:', existingProfileByTelegram.id)
+      logger.debug({
+        event_type: 'auth_user_check',
+        source: 'verify_token',
+        profile_id: existingProfileByTelegram.id
+      }, 'Checking auth.users for existing profile')
       const { data: existingAuthUser } = await supabase.auth.admin.getUserById(existingProfileByTelegram.id)
       authUser = existingAuthUser?.user ?? null
-      console.log('✅ [verify-token] Auth user check:', authUser ? 'Found' : 'Not found')
+      logger.info({
+        event_type: 'auth_user_check_done',
+        source: 'verify_token',
+        auth_user_found: !!authUser,
+        user_id: authUser?.id
+      }, 'Auth user check done')
     }
 
     if (!authUser) {
-      console.log('🔍 [verify-token] Searching existing auth users...')
+      logger.debug({
+        event_type: 'searching_auth_users',
+        source: 'verify_token'
+      }, 'Searching existing auth users')
       // Сначала ищем в существующих пользователях
       const { data: listData, error: listError } = await supabase.auth.admin.listUsers({ page: 1, perPage: 1000 })
       
       if (!listError && listData?.users) {
-        console.log(`📋 [verify-token] Found ${listData.users.length} auth users, searching...`)
+        logger.debug({
+          event_type: 'auth_users_listed',
+          source: 'verify_token',
+          users_count: listData.users.length
+        }, 'Found auth users, searching')
         const matchedUser = listData.users.find(
           (user) =>
             user.email?.toLowerCase() === email.toLowerCase() ||
@@ -137,15 +217,27 @@ export async function POST(request: NextRequest) {
         
         if (matchedUser) {
           authUser = matchedUser as AdminUser
-          console.log('✅ [verify-token] Found existing auth user by email or telegram_id:', authUser.id)
+          logger.info({
+            event_type: 'auth_user_matched',
+            source: 'verify_token',
+            user_id: authUser.id
+          }, 'Found existing auth user by email or telegram_id')
         }
       } else if (listError) {
-        console.error('❌ [verify-token] Error listing users:', listError)
+        logger.error({
+          event_type: 'list_users_error',
+          source: 'verify_token',
+          error: listError.message
+        }, 'Error listing users')
       }
     }
 
     if (!authUser) {
-      console.log('🆕 [verify-token] Creating new auth user...')
+      logger.info({
+        event_type: 'creating_auth_user',
+        source: 'verify_token',
+        telegram_id: authToken.telegram_id
+      }, 'Creating new auth user')
       // Создаем нового пользователя с уникальным email
       const uniqueEmail = `${authToken.telegram_id}-${Date.now()}@outlivion.local`
       
@@ -159,7 +251,12 @@ export async function POST(request: NextRequest) {
       })
 
       if (authCreateError) {
-        console.error('❌ [verify-token] Auth creation error:', authCreateError)
+        logger.error({
+          event_type: 'auth_creation_error',
+          source: 'verify_token',
+          telegram_id: authToken.telegram_id,
+          error: authCreateError.message
+        }, 'Auth creation error')
         return NextResponse.json(
           { error: 'Не удалось создать пользователя', details: authCreateError.message },
           { status: 500 }
@@ -169,19 +266,36 @@ export async function POST(request: NextRequest) {
       if (createdAuthResponse?.user) {
         authUser = createdAuthResponse.user
         createdAuthUser = true
-        console.log('✅ [verify-token] Auth user created:', authUser.id)
+        logger.info({
+          event_type: 'auth_user_created',
+          source: 'verify_token',
+          user_id: authUser.id,
+          telegram_id: authToken.telegram_id
+        }, 'Auth user created')
       }
     }
 
     if (!authUser) {
-      console.error('❌ [verify-token] No auth user after all attempts')
+      logger.error({
+        event_type: 'auth_user_sync_failed',
+        source: 'verify_token',
+        telegram_id: authToken.telegram_id
+      }, 'No auth user after all attempts')
       return NextResponse.json({ error: 'Не удалось синхронизировать пользователя' }, { status: 500 })
     }
 
-    console.log('✅ [verify-token] Auth user ready:', authUser.id)
+    logger.info({
+      event_type: 'auth_user_ready',
+      source: 'verify_token',
+      user_id: authUser.id
+    }, 'Auth user ready')
 
     if (!createdAuthUser) {
-      console.log('🔄 [verify-token] Updating password for existing user...')
+      logger.debug({
+        event_type: 'updating_password',
+        source: 'verify_token',
+        user_id: authUser.id
+      }, 'Updating password for existing user')
       const { error: updatePasswordError } = await supabase.auth.admin.updateUserById(authUser.id, {
         password: token,
         user_metadata: {
@@ -190,20 +304,38 @@ export async function POST(request: NextRequest) {
       })
 
       if (updatePasswordError) {
-        console.error('❌ [verify-token] Auth update error:', updatePasswordError)
+        logger.error({
+          event_type: 'auth_update_error',
+          source: 'verify_token',
+          user_id: authUser.id,
+          error: updatePasswordError.message
+        }, 'Auth update error')
       }
     }
 
     // Синхронизируем профиль в таблице users
-    console.log('👤 [verify-token] Syncing user profile...')
+    logger.debug({
+      event_type: 'syncing_user_profile',
+      source: 'verify_token',
+      user_id: authUser.id
+    }, 'Syncing user profile')
     let userData = null
 
     // Проверяем есть ли уже пользователь
     if (existingProfileByTelegram && existingProfileByTelegram.id === authUser.id) {
-      console.log('✅ [verify-token] Profile already in sync')
+      logger.info({
+        event_type: 'profile_in_sync',
+        source: 'verify_token',
+        user_id: authUser.id
+      }, 'Profile already in sync')
       userData = existingProfileByTelegram
     } else if (existingProfileByTelegram && existingProfileByTelegram.id !== authUser.id) {
-      console.log(`🔄 [verify-token] Profile ID mismatch, migrating from ${existingProfileByTelegram.id} to ${authUser.id}`)
+      logger.info({
+        event_type: 'profile_migration',
+        source: 'verify_token',
+        old_id: existingProfileByTelegram.id,
+        new_id: authUser.id
+      }, 'Profile ID mismatch, migrating')
       const oldId = existingProfileByTelegram.id
 
       const relationsToUpdate = [
@@ -221,7 +353,13 @@ export async function POST(request: NextRequest) {
           .eq(relation.column, oldId)
 
         if (relationError) {
-          console.error(`❌ [verify-token] Failed to migrate ${relation.table}.${relation.column}`, relationError)
+          logger.error({
+            event_type: 'relation_migration_error',
+            source: 'verify_token',
+            table: relation.table,
+            column: relation.column,
+            error: relationError.message
+          }, 'Failed to migrate relation')
           return NextResponse.json(
             { error: 'Ошибка синхронизации данных пользователя', details: relationError.message },
             { status: 500 }
@@ -237,7 +375,13 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (migrateError) {
-        console.error('❌ [verify-token] Profile migration error:', migrateError)
+        logger.error({
+          event_type: 'profile_migration_error',
+          source: 'verify_token',
+          old_id: oldId,
+          new_id: authUser.id,
+          error: migrateError.message
+        }, 'Profile migration error')
         return NextResponse.json(
           { error: 'Ошибка синхронизации профиля пользователя', details: migrateError.message },
           { status: 500 }
@@ -245,10 +389,19 @@ export async function POST(request: NextRequest) {
       }
 
       userData = migratedProfile
-      console.log('✅ [verify-token] Profile migrated')
+      logger.info({
+        event_type: 'profile_migrated',
+        source: 'verify_token',
+        user_id: authUser.id
+      }, 'Profile migrated')
     } else {
       // Профиля совсем нет - создаем новый с пробным периодом (7 дней trial)
-      console.log('🆕 [verify-token] Creating new profile for auth user:', authUser.id)
+      logger.info({
+        event_type: 'creating_profile',
+        source: 'verify_token',
+        user_id: authUser.id,
+        telegram_id: authToken.telegram_id
+      }, 'Creating new profile with trial')
       
       const trialExpiresAt = new Date()
       trialExpiresAt.setDate(trialExpiresAt.getDate() + 7) // 7 days trial
@@ -266,7 +419,12 @@ export async function POST(request: NextRequest) {
         .single()
 
       if (createProfileError || !createdProfile) {
-        console.error('❌ [verify-token] Profile creation error:', createProfileError)
+        logger.error({
+          event_type: 'profile_creation_error',
+          source: 'verify_token',
+          user_id: authUser.id,
+          error: createProfileError?.message
+        }, 'Profile creation error')
         return NextResponse.json(
           { error: 'Ошибка при создании профиля пользователя', details: createProfileError?.message },
           { status: 500 }
@@ -274,7 +432,12 @@ export async function POST(request: NextRequest) {
       }
 
       userData = createdProfile
-      console.log('✅ [verify-token] Profile created with 7-day trial:', userData.id)
+      logger.info({
+        event_type: 'profile_created',
+        source: 'verify_token',
+        user_id: userData.id,
+        trial_expires_at: trialExpiresAt.toISOString()
+      }, 'Profile created with 7-day trial')
       
       // Создаем транзакцию для активации trial
       await supabase.from('transactions').insert({
@@ -300,13 +463,20 @@ export async function POST(request: NextRequest) {
     }
 
     // Помечаем токен как использованный
-    console.log('🔄 [verify-token] Marking token as used...')
+    logger.debug({
+      event_type: 'marking_token_used',
+      source: 'verify_token'
+    }, 'Marking token as used')
     await supabase
       .from('auth_tokens')
       .update({ used: true })
       .eq('token', token)
 
-    console.log('🔐 [verify-token] Creating session for user...')
+    logger.debug({
+      event_type: 'creating_session',
+      source: 'verify_token',
+      user_id: authUser.id
+    }, 'Creating session for user')
     // Создаем сессию для пользователя используя пароль = токен
     const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
       email: authUser.email!,
@@ -314,17 +484,30 @@ export async function POST(request: NextRequest) {
     })
 
     if (signInError || !signInData.session) {
-      console.error('❌ [verify-token] Failed to create session:', signInError)
+      logger.error({
+        event_type: 'session_creation_error',
+        source: 'verify_token',
+        user_id: authUser.id,
+        error: signInError?.message
+      }, 'Failed to create session')
       return NextResponse.json(
         { error: 'Не удалось создать сессию пользователя', details: signInError?.message },
         { status: 500 }
       )
     }
 
-    console.log('✅ [verify-token] Session created successfully!')
+    logger.info({
+      event_type: 'session_created',
+      source: 'verify_token',
+      user_id: authUser.id
+    }, 'Session created successfully')
     return NextResponse.json({ user: userData, session: signInData.session })
   } catch (error) {
-    console.error('❌ [verify-token] Unexpected error:', error)
+    logger.error({
+      event_type: 'unexpected_error',
+      source: 'verify_token',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, 'Unexpected error')
     
     // Don't expose internal error details in production
     const isDevelopment = process.env.NODE_ENV === 'development'

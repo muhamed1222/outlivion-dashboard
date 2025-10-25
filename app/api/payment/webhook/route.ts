@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 import { verifyEnotWebhookSignature, normalizeEnotStatus, type EnotWebhookPayload } from '@/lib/enot'
 import { calculateSubscriptionEnd, type SubscriptionPlan } from '@/lib/subscription'
 import { paymentWebhookSchema, validateRequest } from '@/lib/validation'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -26,12 +27,20 @@ export async function POST(request: NextRequest) {
     const rawBody = await request.json()
     
     // Логируем все входящие webhook для отладки
-    console.log('[Webhook] Received payload:', JSON.stringify(rawBody, null, 2))
+    logger.info({
+      event_type: 'webhook_received',
+      source: 'payment_webhook',
+      payload: rawBody
+    }, 'Webhook received')
     
     // Validate webhook payload
     const validation = validateRequest(paymentWebhookSchema, rawBody)
     if (!validation.success) {
-      console.error('[Webhook] Validation error:', validation.error)
+      logger.error({
+        event_type: 'webhook_validation_error',
+        source: 'payment_webhook',
+        validation_error: validation.error
+      }, 'Webhook validation error')
       return NextResponse.json(
         { error: 'Invalid webhook payload' },
         { status: 400 }
@@ -45,14 +54,24 @@ export async function POST(request: NextRequest) {
       const isValidSignature = verifyEnotWebhookSignature(body as EnotWebhookPayload)
       
       if (!isValidSignature) {
-        console.error('[Webhook] Invalid signature detected')
+        logger.error({
+          event_type: 'signature_verification_failed',
+          source: 'payment_webhook',
+          merchant_id: body.merchant_id,
+          order_id: body.order_id
+        }, 'Invalid signature detected')
         return NextResponse.json(
           { error: 'Invalid signature' }, 
           { status: 401 }
         )
       }
       
-      console.log('[Webhook] Signature verified successfully')
+      logger.info({
+        event_type: 'signature_verified',
+        source: 'payment_webhook',
+        merchant_id: body.merchant_id,
+        order_id: body.order_id
+      }, 'Signature verified successfully')
     }
 
     // Поддержка разных форматов: от Enot.io и тестового формата
@@ -80,14 +99,25 @@ export async function POST(request: NextRequest) {
 
     // Проверяем, что платёж ещё не обработан
     if (payment.status !== 'pending') {
-      console.log(`[Webhook] Payment ${payment_id} already processed with status: ${payment.status}`)
+      logger.info({
+        event_type: 'payment_already_processed',
+        source: 'payment_webhook',
+        payment_id,
+        status: payment.status
+      }, 'Payment already processed')
       return NextResponse.json({ ok: true, message: 'Already processed' })
     }
 
     // Нормализуем статус из Enot.io
     const normalizedStatus = normalizeEnotStatus(status)
     
-    console.log(`[Webhook] Processing payment ${payment_id} with status: ${status} -> ${normalizedStatus}`)
+    logger.info({
+      event_type: 'payment_processing',
+      source: 'payment_webhook',
+      payment_id,
+      original_status: status,
+      normalized_status: normalizedStatus
+    }, 'Processing payment')
 
     if (normalizedStatus === 'completed') {
       // Обновляем статус платежа и сохраняем данные от шлюза
@@ -99,7 +129,11 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', payment_id)
       
-      console.log(`[Webhook] Payment ${payment_id} marked as completed`)
+      logger.info({
+        event_type: 'payment_completed',
+        source: 'payment_webhook',
+        payment_id
+      }, 'Payment marked as completed')
 
       // Получаем данные пользователя и метаданные платежа
       const { data: user } = await supabase
@@ -113,7 +147,13 @@ export async function POST(request: NextRequest) {
         const metadata = payment.metadata || {}
         const planType = metadata.plan_type as SubscriptionPlan | undefined
         
-        console.log(`[Webhook] Processing payment for user ${user.id}, plan: ${planType || 'none'}`)
+        logger.info({
+          event_type: 'user_payment_processing',
+          source: 'payment_webhook',
+          user_id: user.id,
+          plan_type: planType || 'none',
+          amount: paymentAmount
+        }, 'Processing payment for user')
 
         // Если в метаданных указан тип подписки - продлеваем подписку напрямую
         if (planType && ['month', 'halfyear', 'year'].includes(planType)) {
@@ -140,7 +180,13 @@ export async function POST(request: NextRequest) {
             description: `Продление подписки: ${metadata.plan_name || planType}`,
           })
           
-          console.log(`[Webhook] Subscription extended for user ${user.id} until ${newSubscriptionEnd.toISOString()}`)
+          logger.info({
+            event_type: 'subscription_extended',
+            source: 'payment_webhook',
+            user_id: user.id,
+            plan_type: planType,
+            expires_at: newSubscriptionEnd.toISOString()
+          }, 'Subscription extended')
         } else {
           // Старый способ: пополнение баланса
           const newBalance = Number(user.balance) + paymentAmount
@@ -158,7 +204,13 @@ export async function POST(request: NextRequest) {
             description: `Пополнение баланса через ${payment.method}`,
           })
           
-          console.log(`[Webhook] Balance updated for user ${user.id}, new balance: ${newBalance}`)
+          logger.info({
+            event_type: 'balance_updated',
+            source: 'payment_webhook',
+            user_id: user.id,
+            new_balance: newBalance,
+            amount: paymentAmount
+          }, 'Balance updated')
 
           // Проверяем, нужно ли восстановить подписку через старый механизм (plan_id)
           if (user.plan_id) {
@@ -193,7 +245,12 @@ export async function POST(request: NextRequest) {
                   description: 'Автоматическое продление подписки',
                 })
                 
-                console.log(`[Webhook] Subscription auto-renewed for user ${user.id}`)
+                logger.info({
+                  event_type: 'subscription_auto_renewed',
+                  source: 'payment_webhook',
+                  user_id: user.id,
+                  plan_price: planPrice
+                }, 'Subscription auto-renewed')
               }
             }
           }
@@ -209,12 +266,20 @@ export async function POST(request: NextRequest) {
         })
         .eq('id', payment_id)
       
-      console.log(`[Webhook] Payment ${payment_id} marked as failed`)
+      logger.info({
+        event_type: 'payment_failed',
+        source: 'payment_webhook',
+        payment_id
+      }, 'Payment marked as failed')
     }
 
     return NextResponse.json({ ok: true })
   } catch (error) {
-    console.error('Webhook error:', error)
+    logger.error({
+      event_type: 'webhook_error',
+      source: 'payment_webhook',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, 'Webhook error')
     
     // Log error but don't expose details to external payment gateway
     return NextResponse.json(

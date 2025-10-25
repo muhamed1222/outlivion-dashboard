@@ -5,6 +5,7 @@ import type { JSX } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { formatCurrency, formatDateTime } from '@/lib/utils'
+import { logger } from '@/lib/logger.client'
 
 type Transaction = {
   id: string
@@ -93,7 +94,12 @@ export default function HistoryPage() {
       .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
 
     if (error) {
-      console.error('Error fetching transactions:', error)
+      logger.error({
+        event_type: 'transactions_fetch_error',
+        source: 'history_page',
+        user_id: user.id,
+        error: error.message
+      }, 'Error fetching transactions')
       setIsLoading(false)
       return
     }

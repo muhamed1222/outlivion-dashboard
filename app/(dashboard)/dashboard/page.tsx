@@ -7,6 +7,7 @@ import { formatCurrency } from '@/lib/utils'
 import { ReferralCard } from '@/components/ReferralCard'
 import { SubscriptionStatus } from '@/components/SubscriptionStatus'
 import { getSubscriptionStatus } from '@/lib/subscription'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -29,7 +30,12 @@ export default async function DashboardPage() {
     .single()
 
   if (error) {
-    console.error('Error fetching user data:', error)
+    logger.error({
+      event_type: 'user_data_fetch_error',
+      source: 'dashboard_page',
+      user_id: user.id,
+      error: error.message
+    }, 'Error fetching user data')
   }
 
   const balance = userData?.balance || 0

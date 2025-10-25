@@ -5,6 +5,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
+import { logger } from '@/lib/logger.client'
 
 export default function CodePage() {
   const [code, setCode] = useState('')
@@ -54,7 +55,11 @@ export default function CodePage() {
       })
       setCode('')
     } catch (err) {
-      console.error('Activation error:', err)
+      logger.error({
+        event_type: 'code_activation_error',
+        source: 'code_page',
+        error: err instanceof Error ? err.message : 'Unknown error'
+      }, 'Activation error')
       setMessage({
         type: 'error',
         text: err instanceof Error ? err.message : 'Ошибка при активации кода',

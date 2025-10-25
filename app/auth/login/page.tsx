@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/Button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
+import { logger } from '@/lib/logger.client'
 
 export default function LoginPage() {
   const router = useRouter()
@@ -49,7 +50,11 @@ export default function LoginPage() {
       // Редирект на dashboard
       router.push('/dashboard')
     } catch (err) {
-      console.error('Auth error:', err)
+      logger.error({
+        event_type: 'auth_error',
+        source: 'login_page',
+        error: err instanceof Error ? err.message : 'Unknown error'
+      }, 'Authentication error')
       setError(err instanceof Error ? err.message : 'Ошибка авторизации')
     } finally {
       setIsLoading(false)

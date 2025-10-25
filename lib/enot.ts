@@ -1,4 +1,5 @@
 import crypto from 'crypto'
+import { logger } from './logger'
 
 /**
  * Типы для работы с Enot.io API
@@ -90,7 +91,10 @@ export function verifyEnotWebhookSignature(
   const secretKey2 = process.env.ENOT_SECRET_KEY_2
 
   if (!secretKey2) {
-    console.error('ENOT_SECRET_KEY_2 is not configured')
+    logger.error({
+      event_type: 'enot_secret_key_missing',
+      source: 'enot_signature_verification'
+    }, 'ENOT_SECRET_KEY_2 is not configured')
     return false
   }
 
@@ -108,7 +112,13 @@ export function verifyEnotWebhookSignature(
     // Сравниваем подписи
     return expectedSign === payload.sign
   } catch (error) {
-    console.error('Error verifying Enot.io webhook signature:', error)
+    logger.error({
+      event_type: 'signature_verification_error',
+      source: 'enot_signature_verification',
+      merchant_id: payload.merchant_id,
+      order_id: payload.order_id,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, 'Error verifying Enot.io webhook signature')
     return false
   }
 }

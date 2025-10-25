@@ -6,6 +6,7 @@ import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import { formatCurrency } from '@/lib/utils'
+import { logger } from '@/lib/logger.client'
 
 type Plan = {
   id: string
@@ -69,7 +70,11 @@ export default function PayPage() {
       .order('price', { ascending: true })
 
     if (error) {
-      console.error('Error fetching plans:', error)
+      logger.error({
+        event_type: 'plans_fetch_error',
+        source: 'pay_page',
+        error: error.message
+      }, 'Error fetching plans')
       return
     }
 
@@ -120,7 +125,12 @@ export default function PayPage() {
         window.location.href = payment_url
       }
     } catch (err) {
-      console.error('Payment error:', err)
+      logger.error({
+        event_type: 'payment_creation_error',
+        source: 'pay_page',
+        plan_id: selectedPlan,
+        error: err instanceof Error ? err.message : 'Unknown error'
+      }, 'Payment error')
       setError(err instanceof Error ? err.message : 'Ошибка при создании платежа')
     } finally {
       setIsLoading(false)

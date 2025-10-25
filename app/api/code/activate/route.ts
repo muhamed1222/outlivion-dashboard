@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { activateCodeSchema, validateRequest, formatValidationError, checkRateLimit } from '@/lib/validation'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -230,7 +231,11 @@ export async function POST(request: NextRequest) {
       new_expiration: newExpiration.toISOString(),
     })
   } catch (error) {
-    console.error('Activate code error:', error)
+    logger.error({
+      event_type: 'code_activation_error',
+      source: 'activate_code',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, 'Activate code error')
     
     // Don't expose internal error details in production
     const isDevelopment = process.env.NODE_ENV === 'development'

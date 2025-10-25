@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createEnotPayment, formatAmountForEnot } from '@/lib/enot'
 import { checkRateLimit } from '@/lib/validation'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -156,7 +157,12 @@ export async function POST(request: NextRequest) {
         payment_id: payment.id 
       })
     } catch (enotError) {
-      console.error('Enot.io payment creation error:', enotError)
+      logger.error({
+        event_type: 'enot_payment_creation_error',
+        source: 'payment_create',
+        payment_id: payment.id,
+        error: enotError instanceof Error ? enotError.message : 'Unknown error'
+      }, 'Enot.io payment creation error')
       
       // Помечаем платёж как неудачный
       await supabase
@@ -167,7 +173,11 @@ export async function POST(request: NextRequest) {
       throw new Error('Ошибка создания платежа в платёжном шлюзе')
     }
   } catch (error) {
-    console.error('Create payment error:', error)
+    logger.error({
+      event_type: 'payment_creation_error',
+      source: 'payment_create',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, 'Create payment error')
     
     // Don't expose internal error details in production
     const isDevelopment = process.env.NODE_ENV === 'development'

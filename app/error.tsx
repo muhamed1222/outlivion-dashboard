@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react'
 import { Button } from '@/components/ui/Button'
+import { logger } from '@/lib/logger.client'
 
 export default function Error({
   error,
@@ -11,7 +12,11 @@ export default function Error({
   reset: () => void
 }) {
   useEffect(() => {
-    console.error('Application error:', error)
+    logger.error({
+      event_type: 'application_error',
+      source: 'error_boundary',
+      digest: error.digest
+    }, error.message)
   }, [error])
 
   return (

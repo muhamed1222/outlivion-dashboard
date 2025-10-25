@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getSubscriptionStatus } from '@/lib/subscription'
 import { checkSubscriptionSchema, validateRequest, formatValidationError, checkRateLimit } from '@/lib/validation'
+import { logger } from '@/lib/logger'
 
 export const dynamic = 'force-dynamic'
 
@@ -86,7 +87,11 @@ export async function POST(request: NextRequest) {
       balance: user.balance,
     })
   } catch (error) {
-    console.error('Subscription check error:', error)
+    logger.error({
+      event_type: 'subscription_check_error',
+      source: 'subscription_check',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, 'Subscription check error')
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
@@ -167,7 +172,11 @@ export async function GET(request: NextRequest) {
       balance: user.balance,
     })
   } catch (error) {
-    console.error('Subscription check error:', error)
+    logger.error({
+      event_type: 'subscription_check_error',
+      source: 'subscription_check_get',
+      error: error instanceof Error ? error.message : 'Unknown error'
+    }, 'Subscription check error')
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }
