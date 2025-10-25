@@ -116,7 +116,7 @@ export default function HelpPage() {
         </CardHeader>
         <CardContent className="space-y-2">
           {faqData.map((faq) => (
-            <div key={faq.id} className="rounded-card border border-border bg-background">
+            <div key={faq.id} className="rounded-card bg-background-subtle">
               <button
                 onClick={() => toggleFaq(faq.id)}
                 className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-accent-soft/60"

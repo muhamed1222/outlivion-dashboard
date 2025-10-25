@@ -90,7 +90,7 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {error && (
-              <div className="rounded-card border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+              <div className="rounded-card bg-rose-50 px-4 py-3 text-sm text-rose-600">
                 {error}
               </div>
             )}

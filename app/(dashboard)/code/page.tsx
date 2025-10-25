@@ -110,8 +110,8 @@ export default function CodePage() {
               <div
                 className={`p-4 rounded-lg ${
                   message.type === 'success'
-                    ? 'border border-green-200 bg-green-50 text-green-600'
-                    : 'border border-rose-200 bg-rose-50 text-rose-600'
+                    ? 'bg-green-50 text-green-600'
+                    : 'bg-rose-50 text-rose-600'
                 }`}
               >
                 {message.text}
@@ -144,7 +144,7 @@ export default function CodePage() {
               description: 'Покупайте промокоды у проверенных продавцов',
             },
           ].map((item, index) => (
-            <div key={item.title} className="flex items-start gap-4 rounded-card border border-border bg-background px-4 py-3">
+            <div key={item.title} className="flex items-start gap-4 rounded-card bg-background-subtle px-4 py-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
                 {index + 1}
               </div>

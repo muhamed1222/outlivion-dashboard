@@ -147,7 +147,7 @@ export default function HistoryPage() {
                 return (
                   <div
                     key={transaction.id}
-                    className="flex flex-col gap-3 rounded-card border border-border bg-background px-4 py-3 transition hover:border-accent-soft sm:flex-row sm:items-center sm:justify-between"
+                    className="flex flex-col gap-3 rounded-card bg-background-subtle px-4 py-3 transition hover:bg-background sm:flex-row sm:items-center sm:justify-between"
                   >
                     <div className="flex items-start gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft">
@@ -177,7 +177,7 @@ export default function HistoryPage() {
                 <button
                   onClick={loadMore}
                   disabled={isLoading}
-                  className="w-full rounded-card border border-border bg-background px-4 py-3 text-sm font-medium text-foreground transition hover:border-accent-soft hover:text-accent disabled:opacity-60 disabled:cursor-not-allowed"
+                  className="w-full rounded-card bg-background-subtle px-4 py-3 text-sm font-medium text-foreground transition hover:bg-background hover:text-accent disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   {isLoading ? (
                     <span className="flex items-center justify-center gap-2">

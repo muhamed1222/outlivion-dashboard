@@ -100,7 +100,7 @@ export default async function DashboardPage() {
               <Link
                 key={item.href}
                 href={item.href}
-                className="group flex flex-col gap-1.5 rounded-card border border-transparent bg-background p-4 transition hover:border-accent hover:bg-accent-soft"
+                className="group flex flex-col gap-1.5 rounded-card bg-background-subtle p-4 transition hover:bg-accent-soft"
               >
                 <span className="text-sm font-medium text-foreground">{item.title}</span>
                 <span className="text-sm text-foreground-muted">{item.description}</span>

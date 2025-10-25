@@ -159,7 +159,7 @@ export default function PayPage() {
       </div>
 
       {error && (
-        <div className="rounded-card border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+        <div className="rounded-card bg-rose-50 px-4 py-3 text-sm text-rose-600">
           {error}
         </div>
       )}
@@ -175,10 +175,10 @@ export default function PayPage() {
               <button
                 key={plan.id}
                 onClick={() => setSelectedPlan(plan.id)}
-                className={`flex flex-col gap-2 rounded-card border bg-background px-5 py-6 text-left transition ${
+                className={`flex flex-col gap-2 rounded-card px-5 py-6 text-left transition ${
                   selectedPlan === plan.id
-                    ? 'border-accent bg-accent-soft'
-                    : 'border-border hover:border-accent-soft'
+                    ? 'bg-accent-soft'
+                    : 'bg-background-subtle hover:bg-background'
                 }`}
               >
                 <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
@@ -203,10 +203,10 @@ export default function PayPage() {
         <CardContent className="space-y-3">
           <button
             onClick={() => setSelectedGateway('enot')}
-            className={`flex w-full items-center gap-3 rounded-card border bg-background px-4 py-4 text-left transition ${
+            className={`flex w-full items-center gap-3 rounded-card px-4 py-4 text-left transition ${
               selectedGateway === 'enot'
-                ? 'border-accent bg-accent-soft'
-                : 'border-border hover:border-accent-soft'
+                ? 'bg-accent-soft'
+                : 'bg-background-subtle hover:bg-background'
             }`}
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft">
@@ -223,10 +223,10 @@ export default function PayPage() {
           
           <button
             onClick={() => setSelectedGateway('yookassa')}
-            className={`flex w-full items-center gap-3 rounded-card border bg-background px-4 py-4 text-left transition ${
+            className={`flex w-full items-center gap-3 rounded-card px-4 py-4 text-left transition ${
               selectedGateway === 'yookassa'
-                ? 'border-accent bg-accent-soft'
-                : 'border-border hover:border-accent-soft'
+                ? 'bg-accent-soft'
+                : 'bg-background-subtle hover:bg-background'
             }`}
           >
             <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft">
@@ -252,10 +252,10 @@ export default function PayPage() {
             <button
               key={option.key}
               onClick={() => setPaymentMethod(option.key)}
-              className={`flex w-full items-center gap-3 rounded-card border bg-background px-4 py-4 text-left transition ${
+              className={`flex w-full items-center gap-3 rounded-card px-4 py-4 text-left transition ${
                 paymentMethod === option.key
-                  ? 'border-accent bg-accent-soft'
-                  : 'border-border hover:border-accent-soft'
+                  ? 'bg-accent-soft'
+                  : 'bg-background-subtle hover:bg-background'
               }`}
             >
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft">

@@ -127,7 +127,7 @@ export default function ReferralPage() {
             </Button>
           </div>
 
-          <div className="rounded-card border border-accent-soft bg-accent-soft/60 px-4 py-3 text-sm text-foreground">
+          <div className="rounded-card bg-accent-soft/60 px-4 py-3 text-sm text-foreground">
             <p className="font-medium text-accent">Как это работает:</p>
             <ol className="mt-2 space-y-1 text-foreground-muted">
               <li>1. Поделитесь ссылкой в диалоге или чате.</li>
@@ -163,7 +163,7 @@ export default function ReferralPage() {
               description: 'Создание фейковых аккаунтов запрещено и приведет к блокировке.',
             },
           ].map((item, index) => (
-            <div key={item.title} className="flex items-start gap-3 rounded-card border border-border bg-background px-4 py-3">
+            <div key={item.title} className="flex items-start gap-3 rounded-card bg-background-subtle px-4 py-3">
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
                 {index + 1}
               </div>

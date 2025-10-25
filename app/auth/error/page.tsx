@@ -14,7 +14,7 @@ export default function AuthErrorPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="rounded-card border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
+            <div className="rounded-card bg-rose-50 px-4 py-3 text-sm text-rose-600">
               <p className="mb-2 font-medium">Возможные причины:</p>
               <ul className="list-disc list-inside space-y-1 text-foreground-muted">
                 <li>Неверный токен авторизации</li>
