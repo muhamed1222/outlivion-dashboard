@@ -18,14 +18,18 @@ function getSupabaseClient() {
 
 export async function POST(request: NextRequest) {
   try {
+    console.log('🔍 [verify-token] Starting token verification...')
     const supabase = getSupabaseClient()
     const { token } = await request.json()
+    console.log('📝 [verify-token] Token received:', token ? `${token.substring(0, 8)}...` : 'null')
 
     if (!token) {
+      console.error('❌ [verify-token] No token provided')
       return NextResponse.json({ error: 'Токен не предоставлен' }, { status: 400 })
     }
 
     // Проверяем токен в базе данных
+    console.log('🔎 [verify-token] Looking up token in database...')
     const { data: authToken, error: tokenError } = await supabase
       .from('auth_tokens')
       .select('*')
@@ -33,28 +37,34 @@ export async function POST(request: NextRequest) {
       .single()
 
     if (tokenError) {
-      console.error('Token lookup error:', tokenError)
+      console.error('❌ [verify-token] Token lookup error:', tokenError)
       return NextResponse.json({ error: 'Неверный или истекший токен', details: tokenError.message }, { status: 401 })
     }
 
     if (!authToken) {
-      console.error('Token not found')
+      console.error('❌ [verify-token] Token not found')
       return NextResponse.json({ error: 'Неверный или истекший токен' }, { status: 401 })
     }
 
+    console.log('✅ [verify-token] Token found:', { telegram_id: authToken.telegram_id, used: authToken.used, expires_at: authToken.expires_at })
+
     if (authToken.used) {
-      console.error('Token already used')
-      return NextResponse.json({ error: 'Неверный или истекший токен' }, { status: 401 })
+      console.error('❌ [verify-token] Token already used')
+      return NextResponse.json({ error: 'Токен уже использован' }, { status: 401 })
     }
 
     // Проверяем, не истёк ли токен
     if (new Date(authToken.expires_at) < new Date()) {
-      console.error('Token expired:', authToken.expires_at)
+      console.error('❌ [verify-token] Token expired:', authToken.expires_at)
       return NextResponse.json({ error: 'Токен истёк' }, { status: 401 })
     }
 
-    const email = `${authToken.telegram_id}@outlivion.local`
+    console.log('✅ [verify-token] Token is valid, proceeding...')
 
+    const email = `${authToken.telegram_id}@outlivion.local`
+    console.log('📧 [verify-token] Generated email:', email)
+
+    console.log('🔎 [verify-token] Checking existing profile...')
     const { data: existingProfileByTelegram, error: profileFetchError } = await supabase
       .from('users')
       .select('*')
@@ -62,12 +72,14 @@ export async function POST(request: NextRequest) {
       .maybeSingle()
 
     if (profileFetchError) {
-      console.error('Profile fetch error:', profileFetchError)
+      console.error('❌ [verify-token] Profile fetch error:', profileFetchError)
       return NextResponse.json(
-        { error: 'Ошибка доступа к профилю пользователя' },
+        { error: 'Ошибка доступа к профилю пользователя', details: profileFetchError.message },
         { status: 500 }
       )
     }
+
+    console.log('✅ [verify-token] Profile check done:', existingProfileByTelegram ? `Found user ${existingProfileByTelegram.id}` : 'No existing profile')
 
     type AdminUser = NonNullable<
       Awaited<ReturnType<typeof supabase.auth.admin.getUserById>>['data']['user']
@@ -77,12 +89,14 @@ export async function POST(request: NextRequest) {
     let createdAuthUser = false
 
     if (existingProfileByTelegram?.id) {
+      console.log('🔍 [verify-token] Checking auth.users for existing profile ID:', existingProfileByTelegram.id)
       const { data: existingAuthUser } = await supabase.auth.admin.getUserById(existingProfileByTelegram.id)
       authUser = existingAuthUser?.user ?? null
+      console.log('✅ [verify-token] Auth user check:', authUser ? 'Found' : 'Not found')
     }
 
     if (!authUser) {
-      console.log('Creating new auth user with email:', email)
+      console.log('🆕 [verify-token] Creating new auth user with email:', email)
       const { data: createdAuthResponse, error: authCreateError } = await supabase.auth.admin.createUser({
         email,
         password: token,
@@ -93,12 +107,13 @@ export async function POST(request: NextRequest) {
       })
 
       if (authCreateError) {
-        console.error('Auth creation error details:', {
+        console.error('❌ [verify-token] Auth creation error details:', {
           message: authCreateError.message,
           status: authCreateError.status,
           code: authCreateError.code,
         })
         if (authCreateError.message?.toLowerCase().includes('already registered')) {
+          console.log('🔍 [verify-token] User already registered, searching...')
           let matchedUser: AdminUser | null = null
 
           const admin = supabase.auth.admin as {
@@ -131,26 +146,31 @@ export async function POST(request: NextRequest) {
 
           if (matchedUser) {
             authUser = matchedUser
+            console.log('✅ [verify-token] Found existing auth user:', authUser.id)
           } else {
-            console.error('Auth user lookup error after conflict:', authCreateError)
+            console.error('❌ [verify-token] Auth user lookup error after conflict:', authCreateError)
             return NextResponse.json(
-              { error: 'Не удалось получить данные пользователя' },
+              { error: 'Не удалось получить данные пользователя', details: authCreateError.message },
               { status: 500 }
             )
           }
         } else {
-          console.error('Auth creation error:', authCreateError)
-          return NextResponse.json({ error: 'Не удалось создать пользователя' }, { status: 500 })
+          console.error('❌ [verify-token] Auth creation error:', authCreateError)
+          return NextResponse.json({ error: 'Не удалось создать пользователя', details: authCreateError.message }, { status: 500 })
         }
       } else if (createdAuthResponse?.user) {
         authUser = createdAuthResponse.user
         createdAuthUser = true
+        console.log('✅ [verify-token] Auth user created:', authUser.id)
       }
     }
 
     if (!authUser) {
+      console.error('❌ [verify-token] No auth user after all attempts')
       return NextResponse.json({ error: 'Не удалось синхронизировать пользователя' }, { status: 500 })
     }
+
+    console.log('✅ [verify-token] Auth user ready:', authUser.id)
 
     if (!createdAuthUser) {
       const { error: updatePasswordError } = await supabase.auth.admin.updateUserById(authUser.id, {
@@ -254,16 +274,33 @@ export async function POST(request: NextRequest) {
     }
 
     // Помечаем токен как использованный
+    console.log('🔄 [verify-token] Marking token as used...')
     await supabase
       .from('auth_tokens')
       .update({ used: true })
       .eq('token', token)
 
-    return NextResponse.json({ user: userData })
+    console.log('🔐 [verify-token] Creating session for user...')
+    // Создаем сессию для пользователя используя пароль = токен
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({
+      email: authUser.email!,
+      password: token,
+    })
+
+    if (signInError || !signInData.session) {
+      console.error('❌ [verify-token] Failed to create session:', signInError)
+      return NextResponse.json(
+        { error: 'Не удалось создать сессию пользователя', details: signInError?.message },
+        { status: 500 }
+      )
+    }
+
+    console.log('✅ [verify-token] Session created successfully!')
+    return NextResponse.json({ user: userData, session: signInData.session })
   } catch (error) {
-    console.error('Verify token error:', error)
+    console.error('❌ [verify-token] Unexpected error:', error)
     return NextResponse.json(
-      { error: 'Ошибка при проверке токена' },
+      { error: 'Ошибка при проверке токена', details: error instanceof Error ? error.message : 'Unknown error' },
       { status: 500 }
     )
   }
