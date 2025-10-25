@@ -91,7 +91,36 @@ These variables are only available in server-side code (API routes, server compo
 
 ---
 
-### 4. Telegram Integration (Optional but Recommended)
+### 4. Payment Gateway (YooKassa)
+
+#### `YOOKASSA_SHOP_ID`
+- **Type:** 🔒 Server-Only
+- **Required:** ⚠️ Optional (if using YooKassa)
+- **Example:** `123456`
+- **Where to find:** YooKassa Dashboard → Settings → Shop ID
+- **Description:** Your YooKassa shop/merchant identifier
+- **Usage:** Payment creation in API routes
+
+#### `YOOKASSA_SECRET_KEY`
+- **Type:** 🔒 Server-Only
+- **Required:** ⚠️ Optional (if using YooKassa)
+- **Example:** `live_xxxxxxxxxxxxxxxxxxxxxxxx`
+- **Where to find:** YooKassa Dashboard → Settings → Secret Key
+- **Description:** Secret key for YooKassa API authentication
+- **Security:** ⚠️ CRITICAL - Never expose to client
+- **Usage:** Payment creation and webhook verification
+
+#### `ENABLE_YOOKASSA`
+- **Type:** 🔒 Server-Only
+- **Required:** ❌ Optional
+- **Example:** `true` or `false`
+- **Description:** Feature flag to enable/disable YooKassa integration
+- **Default:** `false`
+- **Usage:** Controls whether YooKassa payment option is available
+
+---
+
+### 5. Telegram Integration (Optional but Recommended)
 
 #### `NEXT_PUBLIC_TELEGRAM_BOT_URL`
 - **Type:** Public (Client + Server)
@@ -111,7 +140,7 @@ These variables are only available in server-side code (API routes, server compo
 
 ---
 
-### 5. Optional Variables
+### 6. Optional Variables
 
 #### `TELEGRAM_BOT_TOKEN`
 - **Type:** 🔒 Server-Only
@@ -267,6 +296,11 @@ ENOT_SHOP_ID=12345
 ENOT_SECRET_KEY=sk_xxxxxxxxxxxxxxxxxxxxxxxx
 ENOT_SECRET_KEY_2=sk_xxxxxxxxxxxxxxxxxxxxxxxx
 
+# YooKassa Payment Gateway (Optional)
+YOOKASSA_SHOP_ID=123456
+YOOKASSA_SECRET_KEY=live_xxxxxxxxxxxxxxxxxxxxxxxx
+ENABLE_YOOKASSA=false
+
 # Telegram (Optional)
 NEXT_PUBLIC_TELEGRAM_BOT_URL=https://t.me/your_bot
 NEXT_PUBLIC_SUPPORT_URL=https://t.me/your_support
@@ -283,6 +317,8 @@ Before deploying to production:
 - [ ] Service role keys are server-only (not `NEXT_PUBLIC_`)
 - [ ] `NEXT_PUBLIC_APP_URL` matches your production domain
 - [ ] Payment webhook URL is configured in Enot.io: `https://your-app.vercel.app/api/payment/webhook`
+- [ ] (Optional) Payment webhook URL is configured in YooKassa: `https://your-app.vercel.app/api/payment/webhook/yookassa`
+- [ ] (Optional) `ENABLE_YOOKASSA` is set to `true` if using YooKassa
 - [ ] Secret scanning script passes: `./test_scripts/scan_secrets.sh`
 - [ ] Application redeployed after adding variables
 - [ ] Test payment flow works in production
@@ -290,7 +326,8 @@ Before deploying to production:
 
 ---
 
-**Last Updated:** 2025-10-25  
+**Last Updated:** 2025-10-26  
 **Deployment Platform:** Vercel  
-**Project:** Outlivion Dashboard
+**Project:** Outlivion Dashboard  
+**Payment Gateways:** Enot.io (required), YooKassa (optional)
 

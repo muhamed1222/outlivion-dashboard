@@ -58,6 +58,7 @@ export default function PayPage() {
   const [plans, setPlans] = useState<Plan[]>([])
   const [selectedPlan, setSelectedPlan] = useState<string | null>(null)
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('card')
+  const [selectedGateway, setSelectedGateway] = useState<'enot' | 'yookassa'>('enot')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -112,6 +113,7 @@ export default function PayPage() {
           plan_id: selectedPlan,
           user_id: user.id,
           method: paymentMethod,
+          gateway: selectedGateway, // Добавляем выбранный шлюз
         }),
       })
 
@@ -180,6 +182,54 @@ export default function PayPage() {
               </button>
             ))}
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Платёжная система</CardTitle>
+          <CardDescription>Выберите удобный для вас платёжный шлюз</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <button
+            onClick={() => setSelectedGateway('enot')}
+            className={`flex w-full items-center gap-3 rounded-card border bg-background px-4 py-4 text-left transition ${
+              selectedGateway === 'enot'
+                ? 'border-accent bg-accent-soft shadow-soft'
+                : 'border-border hover:border-accent-soft'
+            }`}
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft">
+              <svg viewBox="0 0 24 24" className="h-6 w-6 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6}>
+                <rect x="3" y="5.5" width="18" height="13" rx="2.5" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18" />
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-foreground">Enot.io</span>
+              <span className="text-xs text-foreground-muted">Банковские карты, СБП</span>
+            </div>
+          </button>
+          
+          <button
+            onClick={() => setSelectedGateway('yookassa')}
+            className={`flex w-full items-center gap-3 rounded-card border bg-background px-4 py-4 text-left transition ${
+              selectedGateway === 'yookassa'
+                ? 'border-accent bg-accent-soft shadow-soft'
+                : 'border-border hover:border-accent-soft'
+            }`}
+          >
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft">
+              <svg viewBox="0 0 24 24" className="h-6 w-6 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v6l4 2" />
+              </svg>
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-semibold text-foreground">ЮKassa</span>
+              <span className="text-xs text-foreground-muted">Карты, СБП, SberPay, ЮMoney, Tinkoff Pay</span>
+            </div>
+          </button>
         </CardContent>
       </Card>
 

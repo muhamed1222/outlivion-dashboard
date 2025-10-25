@@ -11,11 +11,13 @@
 
 - ✅ **Авторизация через Telegram** - безопасная аутентификация через токен из бота
 - 💰 **Управление балансом** - пополнение через карты, СБП или промокоды
+- 💳 **Множественные платёжные шлюзы** - Enot.io и YooKassa (карты, СБП, SberPay, ЮMoney, Tinkoff Pay)
 - 📊 **Dashboard** - отображение статуса подписки и срока действия
 - 🎟️ **Активация кодов** - продление подписки через промокоды
 - 👥 **Реферальная программа** - зарабатывайте, приглашая друзей
 - 📜 **История операций** - полный список транзакций с пагинацией
 - ❓ **Помощь и FAQ** - база знаний и контакты поддержки
+- 📝 **Structured Logging** - полное логирование с помощью Pino
 
 ## 🛠 Технологии
 
@@ -49,6 +51,9 @@ outlivion-dashboard/
 │   └── layout/                  # Компоненты макета
 ├── lib/                         # Утилиты
 │   ├── supabase/               # Supabase клиенты
+│   ├── enot.ts                 # Enot.io интеграция
+│   ├── yookassa.ts             # YooKassa интеграция
+│   ├── logger.ts               # Structured logging (Pino)
 │   └── utils.ts                # Вспомогательные функции
 └── supabase/                   # Supabase конфигурация
     └── schema.sql              # SQL схема БД
@@ -114,7 +119,14 @@ NEXT_PUBLIC_APP_URL=http://localhost:3000
 ENOT_SHOP_ID=your_shop_id
 ENOT_SECRET_KEY=your_secret_key
 ENOT_SECRET_KEY_2=your_secret_key_2
+
+# Payment Gateway (YooKassa) - Optional
+YOOKASSA_SHOP_ID=your_yookassa_shop_id
+YOOKASSA_SECRET_KEY=your_yookassa_secret_key
+ENABLE_YOOKASSA=false
 ```
+
+> 💡 **Примечание**: YooKassa - опциональный платёжный шлюз. См. `YOOKASSA_QUICKSTART.md` для быстрой настройки.
 
 4. **Создайте базу данных**
 
@@ -228,6 +240,40 @@ vercel --prod
 - ✅ Tablet (768px - 1199px)
 - ✅ Mobile (360px - 767px)
 - ✅ Telegram WebView
+
+## 📚 Документация
+
+### Платёжные шлюзы
+- 💳 **[YOOKASSA_QUICKSTART.md](YOOKASSA_QUICKSTART.md)** - Быстрый старт с YooKassa (5 минут)
+- 📖 **[YOOKASSA_INTEGRATION.md](YOOKASSA_INTEGRATION.md)** - Полная документация интеграции YooKassa
+- 🧪 **[YOOKASSA_TESTING.md](YOOKASSA_TESTING.md)** - Руководство по тестированию YooKassa
+- 📊 **[YOOKASSA_IMPLEMENTATION_SUMMARY.md](YOOKASSA_IMPLEMENTATION_SUMMARY.md)** - Summary интеграции
+- 💰 **[PAYMENT_INTEGRATION.md](PAYMENT_INTEGRATION.md)** - Интеграция Enot.io
+- 📋 **[ENOT_DOMAIN_VERIFICATION.md](ENOT_DOMAIN_VERIFICATION.md)** - Верификация домена в Enot.io
+
+### Авторизация и безопасность
+- 🔐 **[AUTH_IMPLEMENTATION_SUMMARY.md](AUTH_IMPLEMENTATION_SUMMARY.md)** - Авторизация через Telegram
+- 🛡️ **[SECURITY_AUDIT_REPORT.md](SECURITY_AUDIT_REPORT.md)** - Аудит безопасности
+- 🔒 **[SECURITY_IMPLEMENTATION_COMPLETE.md](SECURITY_IMPLEMENTATION_COMPLETE.md)** - Безопасность
+- 📝 **[SECURITY_MONITORING.md](SECURITY_MONITORING.md)** - Мониторинг безопасности
+
+### Развёртывание
+- 🚀 **[DEPLOY_GUIDE.md](DEPLOY_GUIDE.md)** - Полное руководство по развёртыванию
+- ✅ **[DEPLOYMENT_SUCCESS.md](DEPLOYMENT_SUCCESS.md)** - Успешное развёртывание
+- 📋 **[VERCEL_ENV_CHECKLIST.md](VERCEL_ENV_CHECKLIST.md)** - Чек-лист переменных окружения
+
+### Разработка
+- 📝 **[STRUCTURED_LOGGING_IMPLEMENTATION.md](STRUCTURED_LOGGING_IMPLEMENTATION.md)** - Structured logging с Pino
+- 🎟️ **[PROMO_CODE_IMPLEMENTATION.md](PROMO_CODE_IMPLEMENTATION.md)** - Система промокодов
+- 📱 **[MOBILE_API.md](MOBILE_API.md)** - API для мобильных приложений
+- 📖 **[PROJECT_SUMMARY.md](PROJECT_SUMMARY.md)** - Обзор проекта
+- ✅ **[QUICK_START.md](QUICK_START.md)** - Быстрый старт
+- 📋 **[CHECKLIST.md](CHECKLIST.md)** - Чек-лист разработки
+
+### Telegram Bot
+- 🤖 **[SETUP_BOT.md](SETUP_BOT.md)** - Настройка Telegram бота
+- 🧪 **[TEST_BOT.md](TEST_BOT.md)** - Тестирование бота
+- 🔧 **[telegram-bot/README.md](telegram-bot/README.md)** - Документация бота
 
 ## 🤝 Вклад в проект
 

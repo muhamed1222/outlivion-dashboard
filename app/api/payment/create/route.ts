@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createEnotPayment, formatAmountForEnot } from '@/lib/enot'
+import { createYooKassaPayment } from '@/lib/yookassa'
 import { checkRateLimit } from '@/lib/validation'
 import { logger } from '@/lib/logger'
 
@@ -40,11 +41,20 @@ export async function POST(request: NextRequest) {
     
     const supabase = getSupabaseClient()
     const body = await request.json()
-    const { plan_id, user_id, method, plan_type } = body
+    const { plan_id, user_id, method, plan_type, gateway = 'enot' } = body
 
     if (!user_id || !method) {
       return NextResponse.json(
         { error: 'Отсутствуют обязательные параметры' },
+        { status: 400 }
+      )
+    }
+    
+    // Validate gateway
+    const validGateways = ['enot', 'yookassa']
+    if (!validGateways.includes(gateway)) {
+      return NextResponse.json(
+        { error: 'Недопустимый платёжный шлюз' },
         { status: 400 }
       )
     }
@@ -116,12 +126,13 @@ export async function POST(request: NextRequest) {
     }
 
     // Создаём запись о платеже с metadata
-    const { data: payment, error: paymentError } = await supabase
+    const { data: payment, error: paymentError} = await supabase
       .from('payments')
       .insert({
         user_id,
         amount,
         method,
+        gateway, // Добавляем gateway
         status: 'pending',
         metadata: {
           telegram_id: user.telegram_id,
@@ -136,8 +147,65 @@ export async function POST(request: NextRequest) {
       throw paymentError
     }
 
-    // Создаём платеж в Enot.io
-    try {
+    // Маршрутизация по платёжному шлюзу
+    if (gateway === 'yookassa') {
+      // YooKassa
+      try {
+        const yookassaResponse = await createYooKassaPayment({
+          amount,
+          order_id: payment.id,
+          description: `Оплата подписки ${planName}`,
+          return_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?order_id=${payment.id}`,
+          metadata: {
+            order_id: payment.id,
+            telegram_id: user.telegram_id,
+            plan_type: planTypeStr,
+            plan_name: planName
+          }
+        })
+
+        // Сохраняем данные от YooKassa
+        await supabase
+          .from('payments')
+          .update({ 
+            gateway_payment_id: yookassaResponse.id,
+            external_id: yookassaResponse.id,
+            payment_method_type: method
+          })
+          .eq('id', payment.id)
+
+        logger.info({
+          event_type: 'payment_created',
+          source: 'payment_create',
+          gateway: 'yookassa',
+          payment_id: payment.id,
+          yookassa_id: yookassaResponse.id
+        }, 'YooKassa payment created')
+
+        return NextResponse.json({ 
+          payment_url: yookassaResponse.confirmation.confirmation_url, 
+          payment_id: payment.id,
+          gateway: 'yookassa'
+        })
+      } catch (yookassaError) {
+        logger.error({
+          event_type: 'yookassa_payment_creation_error',
+          source: 'payment_create',
+          payment_id: payment.id,
+          error: yookassaError instanceof Error ? yookassaError.message : 'Unknown error'
+        }, 'YooKassa payment creation error')
+        
+        // Помечаем платёж как неудачный
+        await supabase
+          .from('payments')
+          .update({ status: 'failed' })
+          .eq('id', payment.id)
+
+        throw new Error('Ошибка создания платежа в YooKassa')
+      }
+    } else {
+      // Enot.io (существующая логика)
+      try {
       const enotResponse = await createEnotPayment({
         amount: formatAmountForEnot(amount),
         order_id: payment.id,
@@ -149,12 +217,17 @@ export async function POST(request: NextRequest) {
       // Сохраняем external_id от Enot.io
       await supabase
         .from('payments')
-        .update({ external_id: enotResponse.id })
+        .update({ 
+          external_id: enotResponse.id,
+          gateway_payment_id: enotResponse.id,
+          payment_method_type: method
+        })
         .eq('id', payment.id)
 
       return NextResponse.json({ 
         payment_url: enotResponse.url, 
-        payment_id: payment.id 
+        payment_id: payment.id,
+        gateway: 'enot'
       })
     } catch (enotError) {
       logger.error({
@@ -171,6 +244,7 @@ export async function POST(request: NextRequest) {
         .eq('id', payment.id)
 
       throw new Error('Ошибка создания платежа в платёжном шлюзе')
+      }
     }
   } catch (error) {
     logger.error({
