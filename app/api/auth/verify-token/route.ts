@@ -122,11 +122,11 @@ export async function POST(request: NextRequest) {
             if (listError) {
               console.error('Auth list users error:', listError)
             }
-            matchedUser = listData?.users.find(
+            matchedUser = (listData?.users.find(
               (user) =>
                 user.email?.toLowerCase() === email.toLowerCase() ||
                 user.user_metadata?.telegram_id === authToken.telegram_id
-            ) as AdminUser | undefined | null
+            ) ?? null) as AdminUser | null
           }
 
           if (matchedUser) {
