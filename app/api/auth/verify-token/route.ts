@@ -99,17 +99,36 @@ export async function POST(request: NextRequest) {
           code: authCreateError.code,
         })
         if (authCreateError.message?.toLowerCase().includes('already registered')) {
-          const { data: listData, error: listError } = await supabase.auth.admin.listUsers()
+          let matchedUser: AdminUser | null = null
 
-          if (listError) {
-            console.error('Auth list users error:', listError)
+          const admin = supabase.auth.admin as {
+            listUsers: typeof supabase.auth.admin.listUsers
+            getUserByEmail?: (email: string) => Promise<{
+              data: { user: AdminUser | null } | null
+              error: { message: string } | null
+            }>
           }
 
-          const matchedUser = listData?.users.find(
-            (user) =>
-              user.email?.toLowerCase() === email.toLowerCase() ||
-              user.user_metadata?.telegram_id === authToken.telegram_id
-          )
+          if (typeof admin.getUserByEmail === 'function') {
+            const { data: emailUser, error: emailLookupError } = await admin.getUserByEmail(email)
+            if (emailLookupError) {
+              console.error('Auth getUserByEmail error:', emailLookupError)
+            }
+            matchedUser = emailUser?.user ?? null
+          }
+
+          if (!matchedUser) {
+            const { data: listData, error: listError } = await supabase.auth.admin.listUsers({ page: 1, perPage: 2000 })
+            if (listError) {
+              console.error('Auth list users error:', listError)
+            }
+            matchedUser = listData?.users.find(
+              (user) =>
+                user.email?.toLowerCase() === email.toLowerCase() ||
+                user.user_metadata?.telegram_id === authToken.telegram_id
+            ) as AdminUser | undefined | null
+          }
+
           if (matchedUser) {
             authUser = matchedUser
           } else {
