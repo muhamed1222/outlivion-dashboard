@@ -120,12 +120,13 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     help_text = (
         "📱 <b>Доступные команды:</b>\n\n"
         "/start - Получить ссылку для входа в личный кабинет\n"
-        "/help - Показать эту справку\n"
+        "/subscription - Проверить статус подписки\n"
         "/referral - Получить реферальную ссылку\n"
+        "/help - Показать эту справку\n"
         "/support - Связаться с поддержкой\n\n"
         "❓ <b>Часто задаваемые вопросы:</b>\n\n"
-        "• Как пополнить баланс?\n"
-        "  Войдите в личный кабинет и выберите раздел 'Пополнить'\n\n"
+        "• Как оформить подписку?\n"
+        "  Войдите в личный кабинет и выберите раздел 'Оформить подписку'\n\n"
         "• Как активировать промокод?\n"
         "  В личном кабинете откройте раздел 'Активация'\n\n"
         "• Как пригласить друга?\n"
@@ -156,6 +157,99 @@ async def referral_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
     await update.message.reply_text(referral_text, parse_mode='HTML')
+
+
+async def subscription_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Обработчик команды /subscription"""
+    user = update.effective_user
+    telegram_id = user.id
+
+    try:
+        supabase_client = create_supabase_client()
+        
+        # Получаем информацию о подписке пользователя
+        response = supabase_client.table('users').select('*').eq('telegram_id', telegram_id).single().execute()
+        
+        if response.data:
+            user_data = response.data
+            plan = user_data.get('plan', 'trial')
+            subscription_expires = user_data.get('subscription_expires')
+            balance = user_data.get('balance', 0)
+            
+            # Определяем название плана
+            plan_names = {
+                'trial': '🎁 Пробный период',
+                'month': '📅 1 месяц',
+                'halfyear': '📆 6 месяцев',
+                'year': '📅 1 год',
+                'expired': '❌ Истекла'
+            }
+            plan_name = plan_names.get(plan, '❓ Неизвестно')
+            
+            # Проверяем активность подписки
+            is_active = False
+            days_remaining = 0
+            
+            if subscription_expires:
+                from datetime import datetime, timezone
+                expires_at = datetime.fromisoformat(subscription_expires.replace('Z', '+00:00'))
+                now = datetime.now(timezone.utc)
+                
+                if expires_at > now:
+                    is_active = True
+                    days_remaining = (expires_at - now).days
+            
+            # Формируем сообщение
+            if is_active:
+                status_emoji = '✅' if plan != 'trial' else '🎁'
+                status_text = 'Активна' if plan != 'trial' else 'Пробный период'
+                
+                subscription_text = (
+                    f"{status_emoji} <b>Ваша подписка</b>\n\n"
+                    f"📋 Тариф: {plan_name}\n"
+                    f"📊 Статус: {status_text}\n"
+                    f"⏳ Осталось дней: <b>{days_remaining}</b>\n"
+                    f"📅 Действует до: {expires_at.strftime('%d.%m.%Y')}\n"
+                    f"💰 Баланс: {balance:.2f} ₽\n"
+                )
+                
+                if plan == 'trial':
+                    subscription_text += "\n💡 Пробный период заканчивается. Оформите подписку, чтобы продолжить!"
+                elif days_remaining <= 3:
+                    subscription_text += "\n⚠️ Подписка скоро истечёт. Продлите её сейчас!"
+            else:
+                subscription_text = (
+                    f"❌ <b>Подписка не активна</b>\n\n"
+                    f"📋 Последний тариф: {plan_name}\n"
+                    f"💰 Баланс: {balance:.2f} ₽\n\n"
+                    f"🔔 Оформите подписку, чтобы продолжить пользоваться сервисом!"
+                )
+            
+            # Кнопки
+            keyboard = [[InlineKeyboardButton("💳 Оформить/Продлить подписку", url=f"{DASHBOARD_URL}/pay")]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await update.message.reply_text(
+                subscription_text,
+                reply_markup=reply_markup,
+                parse_mode='HTML'
+            )
+        else:
+            # Пользователь не найден - предлагаем войти
+            keyboard = [[InlineKeyboardButton("🔐 Войти в личный кабинет", callback_data='start')]]
+            reply_markup = InlineKeyboardMarkup(keyboard)
+            
+            await update.message.reply_text(
+                "❓ Не могу найти информацию о вашей подписке.\n\n"
+                "Пожалуйста, войдите в личный кабинет, чтобы активировать аккаунт.",
+                reply_markup=reply_markup
+            )
+    except Exception as e:
+        logger.error(f"Error in subscription command: {e}")
+        await update.message.reply_text(
+            "❌ Произошла ошибка при получении информации о подписке.\n"
+            "Попробуйте позже или обратитесь в поддержку."
+        )
 
 
 async def support_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -194,6 +288,7 @@ def main():
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("help", help_command))
     app.add_handler(CommandHandler("referral", referral_command))
+    app.add_handler(CommandHandler("subscription", subscription_command))
     app.add_handler(CommandHandler("support", support_command))
 
     app.add_error_handler(error_handler)

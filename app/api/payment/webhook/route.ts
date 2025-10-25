@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyEnotWebhookSignature, normalizeEnotStatus, type EnotWebhookPayload } from '@/lib/enot'
+import { calculateSubscriptionEnd, getPlanDuration, type SubscriptionPlan } from '@/lib/subscription'
 
 export const dynamic = 'force-dynamic'
 
@@ -87,65 +88,101 @@ export async function POST(request: NextRequest) {
       
       console.log(`[Webhook] Payment ${payment_id} marked as completed`)
 
-      // Пополняем баланс пользователя
+      // Получаем данные пользователя и метаданные платежа
       const { data: user } = await supabase
         .from('users')
-        .select('balance')
+        .select('*')
         .eq('id', payment.user_id)
         .single()
 
       if (user) {
-        const newBalance = Number(user.balance) + Number(amount || payment.amount)
-
-        await supabase
-          .from('users')
-          .update({ balance: newBalance })
-          .eq('id', payment.user_id)
-
-        // Создаём транзакцию
-        await supabase.from('transactions').insert({
-          user_id: payment.user_id,
-          type: 'payment',
-          amount: amount || payment.amount,
-          description: `Пополнение баланса через ${payment.method}`,
-        })
+        const paymentAmount = Number(amount || payment.amount)
+        const metadata = payment.metadata || {}
+        const planType = metadata.plan_type as SubscriptionPlan | undefined
         
-        console.log(`[Webhook] Transaction created for user ${payment.user_id}, amount: ${amount || payment.amount}`)
+        console.log(`[Webhook] Processing payment for user ${user.id}, plan: ${planType || 'none'}`)
 
-        // Проверяем, нужно ли восстановить подписку
-        const { data: userData } = await supabase
-          .from('users')
-          .select('subscription_expires, plan_id, plans(price)')
-          .eq('id', payment.user_id)
-          .single()
+        // Если в метаданных указан тип подписки - продлеваем подписку напрямую
+        if (planType && ['month', 'halfyear', 'year'].includes(planType)) {
+          // Рассчитываем новую дату окончания подписки
+          const newSubscriptionEnd = calculateSubscriptionEnd(
+            user.subscription_expires,
+            planType
+          )
 
-        if (userData && userData.plan_id && userData.plans) {
-          const planData = Array.isArray(userData.plans) ? userData.plans[0] : userData.plans
-          const planPrice = (planData as { price: number })?.price || 0
-          const isExpired = !userData.subscription_expires || 
-                           new Date(userData.subscription_expires) < new Date()
-
-          // Если подписка истекла и баланса хватает - восстанавливаем
-          if (isExpired && newBalance >= planPrice) {
-            const newExpiration = new Date()
-            newExpiration.setMonth(newExpiration.getMonth() + 1)
-
-            await supabase
-              .from('users')
-              .update({
-                subscription_expires: newExpiration.toISOString(),
-                balance: newBalance - planPrice,
-              })
-              .eq('id', payment.user_id)
-
-            await supabase.from('transactions').insert({
-              user_id: payment.user_id,
-              type: 'subscription',
-              amount: -planPrice,
-              description: 'Восстановление подписки',
+          // Обновляем подписку пользователя
+          await supabase
+            .from('users')
+            .update({
+              plan: planType,
+              subscription_expires: newSubscriptionEnd.toISOString(),
             })
-            
-            console.log(`[Webhook] Subscription auto-renewed for user ${payment.user_id}`)
+            .eq('id', user.id)
+
+          // Создаём транзакцию для подписки
+          await supabase.from('transactions').insert({
+            user_id: user.id,
+            type: 'subscription',
+            amount: paymentAmount,
+            description: `Продление подписки: ${metadata.plan_name || planType}`,
+          })
+          
+          console.log(`[Webhook] Subscription extended for user ${user.id} until ${newSubscriptionEnd.toISOString()}`)
+        } else {
+          // Старый способ: пополнение баланса
+          const newBalance = Number(user.balance) + paymentAmount
+
+          await supabase
+            .from('users')
+            .update({ balance: newBalance })
+            .eq('id', user.id)
+
+          // Создаём транзакцию для пополнения
+          await supabase.from('transactions').insert({
+            user_id: user.id,
+            type: 'payment',
+            amount: paymentAmount,
+            description: `Пополнение баланса через ${payment.method}`,
+          })
+          
+          console.log(`[Webhook] Balance updated for user ${user.id}, new balance: ${newBalance}`)
+
+          // Проверяем, нужно ли восстановить подписку через старый механизм (plan_id)
+          if (user.plan_id) {
+            const { data: planData } = await supabase
+              .from('plans')
+              .select('price, duration_days')
+              .eq('id', user.plan_id)
+              .single()
+
+            if (planData) {
+              const planPrice = planData.price
+              const isExpired = !user.subscription_expires || 
+                               new Date(user.subscription_expires) < new Date()
+
+              // Если подписка истекла и баланса хватает - восстанавливаем
+              if (isExpired && newBalance >= planPrice) {
+                const newExpiration = new Date()
+                newExpiration.setDate(newExpiration.getDate() + (planData.duration_days || 30))
+
+                await supabase
+                  .from('users')
+                  .update({
+                    subscription_expires: newExpiration.toISOString(),
+                    balance: newBalance - planPrice,
+                  })
+                  .eq('id', user.id)
+
+                await supabase.from('transactions').insert({
+                  user_id: user.id,
+                  type: 'subscription',
+                  amount: -planPrice,
+                  description: 'Автоматическое продление подписки',
+                })
+                
+                console.log(`[Webhook] Subscription auto-renewed for user ${user.id}`)
+              }
+            }
           }
         }
       }

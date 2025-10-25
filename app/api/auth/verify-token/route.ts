@@ -220,13 +220,20 @@ export async function POST(request: NextRequest) {
       userData = migratedProfile
       console.log('✅ [verify-token] Profile migrated')
     } else {
-      // Профиля совсем нет - создаем новый
+      // Профиля совсем нет - создаем новый с пробным периодом (7 дней trial)
       console.log('🆕 [verify-token] Creating new profile for auth user:', authUser.id)
+      
+      const trialExpiresAt = new Date()
+      trialExpiresAt.setDate(trialExpiresAt.getDate() + 7) // 7 days trial
+      
       const { data: createdProfile, error: createProfileError } = await supabase
         .from('users')
         .insert({
           id: authUser.id,
           telegram_id: authToken.telegram_id,
+          plan: 'trial',
+          subscription_expires: trialExpiresAt.toISOString(),
+          balance: 0,
         })
         .select()
         .single()
@@ -240,7 +247,15 @@ export async function POST(request: NextRequest) {
       }
 
       userData = createdProfile
-      console.log('✅ [verify-token] Profile created:', userData.id)
+      console.log('✅ [verify-token] Profile created with 7-day trial:', userData.id)
+      
+      // Создаем транзакцию для активации trial
+      await supabase.from('transactions').insert({
+        user_id: userData.id,
+        type: 'subscription',
+        amount: 0,
+        description: 'Активация пробного периода (7 дней)',
+      })
     }
 
     // Гарантируем, что telegram_id актуален
