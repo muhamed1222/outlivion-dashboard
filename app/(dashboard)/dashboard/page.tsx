@@ -1,9 +1,9 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
 import Link from 'next/link'
 import { formatCurrency, getDaysRemaining, isSubscriptionActive } from '@/lib/utils'
+import { ReferralCard } from '@/components/ReferralCard'
 
 export const dynamic = 'force-dynamic'
 
@@ -35,124 +35,54 @@ export default async function DashboardPage() {
   const daysRemaining = getDaysRemaining(subscriptionExpires)
   const isActive = isSubscriptionActive(subscriptionExpires)
 
+  const referralLink = `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL?.replace('https://t.me/', '') || 'outlivionbot'}?start=${userData?.telegram_id}`
+
   return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Добро пожаловать!</h1>
-        <p className="text-white/60">
-          {userData?.name || `Пользователь #${userData?.telegram_id}`}
-        </p>
+    <div className="min-h-screen pb-8">
+      {/* Баланс */}
+      <div className="bg-gradient-to-br from-indigo-500/20 to-purple-600/20 backdrop-blur-xl rounded-3xl p-8 mb-6">
+        <p className="text-white/60 text-sm mb-2">Баланс</p>
+        <h1 className="text-6xl font-bold mb-6">{formatCurrency(balance)}</h1>
+        
+        <div className="space-y-3">
+          <Link href="/pay">
+            <Button className="w-full h-14 text-lg bg-indigo-600 hover:bg-indigo-700 rounded-2xl">
+              Пополнить баланс
+            </Button>
+          </Link>
+          
+          <Link href="/code">
+            <Button className="w-full h-14 text-lg bg-black hover:bg-gray-900 rounded-2xl">
+              Активировать код
+            </Button>
+          </Link>
+        </div>
+
+        <Link href="/history" className="block text-center mt-4 text-indigo-300 hover:text-indigo-200 transition">
+          История платежей
+        </Link>
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Баланс */}
-        <Card>
-          <CardHeader>
-            <CardDescription>Текущий баланс</CardDescription>
-            <CardTitle className="text-4xl">{formatCurrency(balance)}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Link href="/pay">
-              <Button className="w-full">Пополнить баланс</Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        {/* Подписка */}
-        <Card>
-          <CardHeader>
-            <CardDescription>Статус подписки</CardDescription>
-            <CardTitle className="text-4xl">
-              {isActive ? (
-                <span className="text-green-400">{daysRemaining} дней</span>
-              ) : (
-                <span className="text-red-400">Неактивна</span>
-              )}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {plan ? (
-              <div className="space-y-2">
-                <p className="text-sm text-white/60">
-                  Тариф: <span className="text-white font-medium">{plan.name}</span>
-                </p>
-                <p className="text-sm text-white/60">
-                  Стоимость: <span className="text-white font-medium">{formatCurrency(plan.price)}</span>
-                </p>
-              </div>
-            ) : (
-              <p className="text-sm text-white/60 mb-4">У вас нет активного тарифа</p>
-            )}
-            <Link href="/code">
-              <Button variant="outline" className="w-full mt-4">
-                Активировать код
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Быстрые действия */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Быстрые действия</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-            <Link href="/pay">
-              <Button variant="secondary" className="w-full h-20">
-                <div className="text-center">
-                  <div className="text-2xl mb-1">💳</div>
-                  <div className="text-sm">Оплата</div>
-                </div>
-              </Button>
-            </Link>
-            <Link href="/code">
-              <Button variant="secondary" className="w-full h-20">
-                <div className="text-center">
-                  <div className="text-2xl mb-1">🎟️</div>
-                  <div className="text-sm">Активация</div>
-                </div>
-              </Button>
-            </Link>
-            <Link href="/referral">
-              <Button variant="secondary" className="w-full h-20">
-                <div className="text-center">
-                  <div className="text-2xl mb-1">👥</div>
-                  <div className="text-sm">Реферальная</div>
-                </div>
-              </Button>
-            </Link>
-            <Link href="/help">
-              <Button variant="secondary" className="w-full h-20">
-                <div className="text-center">
-                  <div className="text-2xl mb-1">❓</div>
-                  <div className="text-sm">Помощь</div>
-                </div>
-              </Button>
-            </Link>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Информация */}
-      {!isActive && (
-        <Card className="border-amber-500/50 bg-amber-500/10">
-          <CardContent className="pt-6">
-            <div className="flex items-start gap-3">
-              <div className="text-2xl">⚠️</div>
-              <div>
-                <h3 className="font-semibold text-amber-400 mb-1">
-                  Подписка неактивна
-                </h3>
-                <p className="text-sm text-white/80">
-                  Пополните баланс или активируйте код, чтобы продолжить пользоваться VPN.
-                </p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Предупреждение о балансе */}
+      {(balance < 0 || !isActive) && (
+        <div className="mb-6 text-center">
+          <p className="text-red-400 font-medium">
+            Недостаточно средств на балансе, аккаунт приостановлен. Для продолжения работы пополните баланс
+          </p>
+        </div>
       )}
+
+      {/* Тариф */}
+      {plan && (
+        <div className="text-center mb-8">
+          <p className="text-white/60">
+            Тариф {formatCurrency(plan.price)}/мес за одно устройство
+          </p>
+        </div>
+      )}
+
+      {/* Реферальная программа */}
+      <ReferralCard referralLink={referralLink} />
     </div>
   )
 }

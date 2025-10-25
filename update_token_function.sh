@@ -1,6 +1,11 @@
--- SQL функция для генерации токенов авторизации
--- Выполните этот SQL в Supabase Dashboard → SQL Editor
+#!/bin/bash
 
+# Автоматическое обновление SQL функции в Supabase
+
+SUPABASE_URL="https://ftqpccuyibzdczzowzkw.supabase.co"
+SUPABASE_SERVICE_ROLE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ0cXBjY3V5aWJ6ZGN6em93emt3Iiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc2MTMzMzQwMywiZXhwIjoyMDc2OTA5NDAzfQ.SUE6yANk72zYF9c3m-HQqHSE2HXqq200_yMxuaaq1ko"
+
+SQL=$(cat << 'EOF'
 CREATE OR REPLACE FUNCTION generate_auth_token(tg_id BIGINT)
 RETURNS JSON
 LANGUAGE plpgsql
@@ -30,7 +35,17 @@ BEGIN
   RETURN result;
 END;
 $$;
+EOF
+)
 
--- Проверка работы функции (опционально)
--- SELECT generate_auth_token(123456789);
+echo "📝 Обновление функции generate_auth_token в Supabase..."
+
+curl -X POST "${SUPABASE_URL}/rest/v1/rpc/exec" \
+  -H "apikey: ${SUPABASE_SERVICE_ROLE_KEY}" \
+  -H "Authorization: Bearer ${SUPABASE_SERVICE_ROLE_KEY}" \
+  -H "Content-Type: application/json" \
+  -d "{\"query\": \"${SQL}\"}"
+
+echo ""
+echo "✅ Готово!"
 
