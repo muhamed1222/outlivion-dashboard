@@ -46,7 +46,7 @@ export const createPaymentSchema = z.object({
     .max(1000000, 'Maximum amount is 1,000,000')
     .finite('Amount must be a valid number'),
   method: z.enum(['card', 'sbp', 'promo'], {
-    errorMap: () => ({ message: 'Method must be card, sbp, or promo' }),
+    message: 'Method must be card, sbp, or promo',
   }),
   plan_type: z.enum(['month', 'halfyear', 'year']).optional(),
   plan_name: z.string().max(100).optional(),
@@ -110,7 +110,7 @@ export function validateRequest<T>(
  * Format Zod errors into user-friendly messages
  */
 export function formatValidationError(error: z.ZodError): string {
-  const firstError = error.errors[0]
+  const firstError = error.issues[0]
   if (firstError) {
     return firstError.message
   }
