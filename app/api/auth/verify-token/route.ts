@@ -30,7 +30,6 @@ export async function POST(request: NextRequest) {
       .from('auth_tokens')
       .select('*')
       .eq('token', token)
-      .eq('used', false)
       .single()
 
     if (tokenError) {
@@ -39,7 +38,12 @@ export async function POST(request: NextRequest) {
     }
 
     if (!authToken) {
-      console.error('Token not found or already used')
+      console.error('Token not found')
+      return NextResponse.json({ error: 'Неверный или истекший токен' }, { status: 401 })
+    }
+
+    if (authToken.used) {
+      console.error('Token already used')
       return NextResponse.json({ error: 'Неверный или истекший токен' }, { status: 401 })
     }
 
