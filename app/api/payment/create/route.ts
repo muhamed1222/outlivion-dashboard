@@ -106,7 +106,6 @@ export async function POST(request: NextRequest) {
         comment: `Оплата подписки ${planName}`,
         success_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/success?order_id=${payment.id}`,
         fail_url: `${process.env.NEXT_PUBLIC_APP_URL}/payment/fail?order_id=${payment.id}`,
-        custom: user.telegram_id.toString(), // Pass telegram_id as custom field
       })
 
       // Сохраняем external_id от Enot.io
