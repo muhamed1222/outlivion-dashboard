@@ -78,6 +78,7 @@ export async function POST(request: NextRequest) {
     }
 
     if (!authUser) {
+      console.log('Creating new auth user with email:', email)
       const { data: createdAuthResponse, error: authCreateError } = await supabase.auth.admin.createUser({
         email,
         password: token,
@@ -88,6 +89,11 @@ export async function POST(request: NextRequest) {
       })
 
       if (authCreateError) {
+        console.error('Auth creation error details:', {
+          message: authCreateError.message,
+          status: authCreateError.status,
+          code: authCreateError.code,
+        })
         if (authCreateError.message?.toLowerCase().includes('already registered')) {
           const { data: listData, error: listError } = await supabase.auth.admin.listUsers()
 
