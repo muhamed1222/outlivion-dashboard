@@ -1,10 +1,10 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import type { SVGProps } from 'react'
 import Link from 'next/link'
 import { usePathname, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
-import type { SVGProps } from 'react'
 import { cn } from '@/lib/utils'
 
 type IconProps = SVGProps<SVGSVGElement>
@@ -21,14 +21,14 @@ const HomeIcon = (props: IconProps) => (
 const BanknotesIcon = (props: IconProps) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} {...props} className={cn(iconBase, props.className)}>
     <rect x="3" y="5.5" width="18" height="13" rx="2.5" />
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12c0 1.657 1.567 3 3.5 3s3.5-1.343 3.5-3-1.567-3-3.5-3S9 10.343 9 12z" />
     <path strokeLinecap="round" strokeLinejoin="round" d="M7 7.5v3m10-3v3" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12c0 1.657 1.567 3 3.5 3s3.5-1.343 3.5-3-1.567-3-3.5-3S9 10.343 9 12z" />
   </svg>
 )
 
 const TicketIcon = (props: IconProps) => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.7} {...props} className={cn(iconBase, props.className)}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4 7.5a2.5 2.5 0 102.5 2.5A2.5 2.5 0 009 12a2.5 2.5 0 102.5 2.5A2.5 2.5 0 0014 17a2.5 2.5 0 102.5-2.5A2.5 2.5 0 0019 12a2.5 2.5 0 102.5-2.5V7a2 2 0 00-2-2H6a2 2 0 00-2 2z" />
+    <path strokeLinecap="round" strokeLinejoin="round" d="M5 7.5a2.5 2.5 0 004-1.94A2.5 2.5 0 0012 3.5a2.5 2.5 0 003 2.06A2.5 2.5 0 0017 7.5a2.5 2.5 0 01-1.5 2.29M5 7.5H3.75A1.75 1.75 0 002 9.25v5.5A1.75 1.75 0 003.75 16.5H9.5l2.5 3 2.5-3h5.75A1.75 1.75 0 0022 14.75v-5.5A1.75 1.75 0 0020.25 7.5H19" />
   </svg>
 )
 
@@ -112,87 +112,117 @@ export function Navbar() {
   }
 
   return (
-    <nav className="sticky top-0 z-50 border-b border-border bg-background">
-      <div className="container-dashboard">
-        <div className="flex h-16 items-center justify-between gap-3">
+    <>
+      {/* Mobile top bar */}
+      <nav className="border-b border-border bg-background lg:hidden">
+        <div className="container-dashboard">
+          <div className="flex h-16 items-center justify-between gap-3">
+            <Link href="/dashboard" className="flex items-center gap-3">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent shadow-soft">
+                <span className="text-lg font-semibold">O</span>
+              </div>
+              <div>
+                <p className="text-base font-semibold text-foreground">Outlivion</p>
+                <p className="text-xs text-foreground-subtle">Управление подпиской VPN</p>
+              </div>
+            </Link>
+            <button
+              onClick={() => setIsMenuOpen((prev) => !prev)}
+              className="flex items-center gap-3 rounded-pill bg-background-surface px-4 py-2 text-sm font-medium text-foreground shadow-soft transition hover:bg-accent-soft"
+            >
+              <span>{userName}</span>
+              <ChevronDownIcon className={cn('text-foreground-subtle transition-transform', isMenuOpen && 'rotate-180')} />
+            </button>
+          </div>
+        </div>
+
+        {isMenuOpen && (
+          <div className="border-t border-border bg-background-surface p-3 shadow-soft">
+            <div className="space-y-2">
+              {navigation.map((item) => {
+                const Icon = item.icon
+                const isActive = pathname === item.href
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setIsMenuOpen(false)}
+                    className={cn(
+                      'flex items-center gap-3 rounded-card px-3 py-2 text-sm transition',
+                      isActive ? 'bg-accent-soft text-accent' : 'text-foreground-muted hover:bg-accent-soft'
+                    )}
+                  >
+                    <Icon className="h-5 w-5" />
+                    {item.name}
+                  </Link>
+                )
+              })}
+            </div>
+            <button
+              onClick={() => {
+                setIsMenuOpen(false)
+                handleSignOut()
+              }}
+              className="mt-3 flex w-full items-center gap-3 rounded-card px-3 py-2 text-sm text-rose-500 transition hover:bg-rose-50"
+            >
+              <ArrowRightOnRectangleIcon className="h-5 w-5" />
+              Выйти
+            </button>
+          </div>
+        )}
+      </nav>
+
+      {/* Desktop sidebar */}
+      <aside className="hidden w-64 flex-col border-border bg-background lg:flex lg:border-r">
+        <div className="flex h-full flex-col gap-8 px-6 py-8">
           <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent shadow-soft">
-              <span className="text-lg font-semibold">O</span>
+            <div className="flex h-11 w-11 items-center justify-center rounded-full bg-accent-soft text-accent shadow-soft">
+              <span className="text-xl font-semibold">O</span>
             </div>
             <div>
               <p className="text-base font-semibold text-foreground">Outlivion</p>
-              <p className="text-xs text-foreground-subtle">Управление подпиской VPN</p>
+              <p className="text-xs text-foreground-subtle">Личный кабинет</p>
             </div>
           </Link>
 
-          <div className="hidden items-center gap-2 lg:flex">
-            {navigation.map((item) => {
-              const Icon = item.icon
-              const isActive = pathname === item.href
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`flex items-center gap-2 rounded-pill px-4 py-2 text-sm transition ${
-                    isActive
-                      ? 'bg-accent text-white shadow-soft'
-                      : 'bg-background-surface text-foreground-muted hover:text-foreground hover:bg-accent-soft'
-                  }`}
-                >
-                  <Icon className="h-5 w-5" />
-                  {item.name}
-                </Link>
-              )
-            })}
+          <div className="space-y-4">
+            <p className="px-2 text-xs font-semibold uppercase tracking-wide text-foreground-subtle">Навигация</p>
+            <nav className="space-y-1">
+              {navigation.map((item) => {
+                const Icon = item.icon
+                const isActive = pathname === item.href
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    className={cn(
+                      'flex items-center gap-3 rounded-card px-3 py-2 text-sm transition',
+                      isActive ? 'bg-accent text-white shadow-soft' : 'text-foreground-muted hover:bg-accent-soft'
+                    )}
+                  >
+                    <Icon className={cn('transition', isActive ? 'text-white' : 'text-foreground-subtle')} />
+                    {item.name}
+                  </Link>
+                )
+              })}
+            </nav>
           </div>
 
-          <div className="relative">
+          <div className="mt-auto space-y-2">
+            <div className="rounded-card border border-border bg-background px-4 py-3">
+              <p className="text-sm font-semibold text-foreground">{userName}</p>
+              <p className="text-xs text-foreground-subtle">Telegram аккаунт</p>
+            </div>
             <button
-              onClick={() => setIsMenuOpen((prev) => !prev)}
-              className="flex items-center gap-3 rounded-pill bg-background-surface px-4 py-2 text-sm font-medium text-foreground hover:bg-accent-soft transition shadow-soft"
+              onClick={handleSignOut}
+              className="flex w-full items-center gap-3 rounded-card px-3 py-2 text-sm text-rose-500 transition hover:bg-rose-50"
             >
-              <span>{userName}</span>
-              <ChevronDownIcon
-                className={`h-4 w-4 text-foreground-subtle transition-transform ${isMenuOpen ? 'rotate-180' : ''}`}
-              />
+              <ArrowRightOnRectangleIcon className="h-5 w-5" />
+              Выйти
             </button>
-
-            {isMenuOpen && (
-              <div className="absolute right-0 mt-3 w-60 rounded-card border border-border bg-background-surface p-2 shadow-card">
-                <div className="flex flex-col gap-1">
-                  {navigation.map((item) => {
-                    const Icon = item.icon
-                    const isActive = pathname === item.href
-                    return (
-                      <Link
-                        key={item.href}
-                        href={item.href}
-                        onClick={() => setIsMenuOpen(false)}
-                        className={`flex items-center gap-3 rounded-card px-3 py-2 text-sm transition ${
-                          isActive ? 'bg-accent-soft text-accent' : 'text-foreground-muted hover:bg-accent-soft'
-                        }`}
-                      >
-                        <Icon className="h-5 w-5" />
-                        {item.name}
-                      </Link>
-                    )
-                  })}
-                </div>
-                <button
-                  onClick={() => {
-                    setIsMenuOpen(false)
-                    handleSignOut()
-                  }}
-                  className="mt-3 flex w-full items-center gap-3 rounded-card px-3 py-2 text-sm text-rose-500 transition hover:bg-rose-50"
-                >
-                  <ArrowRightOnRectangleIcon className="h-5 w-5" />
-                  Выйти
-                </button>
-              </div>
-            )}
           </div>
         </div>
-      </div>
-    </nav>
+      </aside>
+    </>
   )
 }
