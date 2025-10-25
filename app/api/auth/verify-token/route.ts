@@ -33,12 +33,19 @@ export async function POST(request: NextRequest) {
       .eq('used', false)
       .single()
 
-    if (tokenError || !authToken) {
-      return NextResponse.json({ error: 'Неверный токен' }, { status: 401 })
+    if (tokenError) {
+      console.error('Token lookup error:', tokenError)
+      return NextResponse.json({ error: 'Неверный или истекший токен', details: tokenError.message }, { status: 401 })
+    }
+
+    if (!authToken) {
+      console.error('Token not found or already used')
+      return NextResponse.json({ error: 'Неверный или истекший токен' }, { status: 401 })
     }
 
     // Проверяем, не истёк ли токен
     if (new Date(authToken.expires_at) < new Date()) {
+      console.error('Token expired:', authToken.expires_at)
       return NextResponse.json({ error: 'Токен истёк' }, { status: 401 })
     }
 
