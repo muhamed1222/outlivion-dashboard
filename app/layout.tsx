@@ -7,6 +7,9 @@ const inter = Inter({ subsets: ["latin", "cyrillic"] });
 export const metadata: Metadata = {
   title: "Outlivion Dashboard",
   description: "Личный кабинет VPN-сервиса Outlivion",
+  other: {
+    'enot': '797bce18',
+  },
 }
 
 export const viewport = {
