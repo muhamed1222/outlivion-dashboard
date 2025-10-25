@@ -65,6 +65,18 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // УПРОЩЕННЫЙ ПОДХОД: Если пользователь существует, просто возвращаем его данные
+    if (existingProfileByTelegram) {
+      console.log('User already exists, returning profile:', existingProfileByTelegram.id)
+      // Помечаем токен как использованный
+      await supabase
+        .from('auth_tokens')
+        .update({ used: true })
+        .eq('token', token)
+
+      return NextResponse.json({ user: existingProfileByTelegram })
+    }
+
     type AdminUser = NonNullable<
       Awaited<ReturnType<typeof supabase.auth.admin.getUserById>>['data']['user']
     >
