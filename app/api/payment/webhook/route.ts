@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { verifyEnotWebhookSignature, normalizeEnotStatus, type EnotWebhookPayload } from '@/lib/enot'
-import { calculateSubscriptionEnd, getPlanDuration, type SubscriptionPlan } from '@/lib/subscription'
+import { calculateSubscriptionEnd, type SubscriptionPlan } from '@/lib/subscription'
+import { paymentWebhookSchema, validateRequest } from '@/lib/validation'
 
 export const dynamic = 'force-dynamic'
 
@@ -22,10 +23,22 @@ export async function POST(request: NextRequest) {
   try {
     const supabase = getSupabaseClient()
     
-    const body = await request.json() as Partial<EnotWebhookPayload>
+    const rawBody = await request.json()
     
     // Логируем все входящие webhook для отладки
-    console.log('[Webhook] Received payload:', JSON.stringify(body, null, 2))
+    console.log('[Webhook] Received payload:', JSON.stringify(rawBody, null, 2))
+    
+    // Validate webhook payload
+    const validation = validateRequest(paymentWebhookSchema, rawBody)
+    if (!validation.success) {
+      console.error('[Webhook] Validation error:', validation.error)
+      return NextResponse.json(
+        { error: 'Invalid webhook payload' },
+        { status: 400 }
+      )
+    }
+    
+    const body = rawBody as Partial<EnotWebhookPayload>
 
     // Проверка подписи от Enot.io
     if (body.sign && body.merchant_id && body.amount && body.order_id) {
@@ -202,6 +215,8 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ ok: true })
   } catch (error) {
     console.error('Webhook error:', error)
+    
+    // Log error but don't expose details to external payment gateway
     return NextResponse.json(
       { error: 'Ошибка обработки webhook' },
       { status: 500 }

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { verifyTokenSchema, validateRequest, formatValidationError, checkRateLimit } from '@/lib/validation'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,14 +20,40 @@ function getSupabaseClient() {
 export async function POST(request: NextRequest) {
   try {
     console.log('🔍 [verify-token] Starting token verification...')
-    const supabase = getSupabaseClient()
-    const { token } = await request.json()
-    console.log('📝 [verify-token] Token received:', token ? `${token.substring(0, 8)}...` : 'null')
-
-    if (!token) {
-      console.error('❌ [verify-token] No token provided')
-      return NextResponse.json({ error: 'Токен не предоставлен' }, { status: 400 })
+    
+    // Rate limiting: 10 requests per 15 minutes per IP
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+    const rateLimit = checkRateLimit(`verify-token:${ip}`, 10, 15 * 60 * 1000)
+    
+    if (!rateLimit.allowed) {
+      console.error('❌ [verify-token] Rate limit exceeded for IP:', ip)
+      return NextResponse.json(
+        { error: 'Слишком много попыток. Попробуйте позже.' },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString(),
+          }
+        }
+      )
     }
+    
+    const supabase = getSupabaseClient()
+    const body = await request.json()
+    
+    // Validate input
+    const validation = validateRequest(verifyTokenSchema, body)
+    if (!validation.success) {
+      console.error('❌ [verify-token] Validation error:', validation.error)
+      return NextResponse.json(
+        { error: formatValidationError(validation.error) },
+        { status: 400 }
+      )
+    }
+    
+    const { token } = validation.data
+    console.log('📝 [verify-token] Token received:', `${token.substring(0, 8)}...`)
 
     // Проверяем токен в базе данных
     console.log('🔎 [verify-token] Looking up token in database...')
@@ -298,8 +325,14 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ user: userData, session: signInData.session })
   } catch (error) {
     console.error('❌ [verify-token] Unexpected error:', error)
+    
+    // Don't expose internal error details in production
+    const isDevelopment = process.env.NODE_ENV === 'development'
     return NextResponse.json(
-      { error: 'Ошибка при проверке токена', details: error instanceof Error ? error.message : 'Unknown error' },
+      { 
+        error: 'Ошибка при проверке токена',
+        ...(isDevelopment && { details: error instanceof Error ? error.message : 'Unknown error' })
+      },
       { status: 500 }
     )
   }

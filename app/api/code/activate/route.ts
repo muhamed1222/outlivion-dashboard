@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { activateCodeSchema, validateRequest, formatValidationError, checkRateLimit } from '@/lib/validation'
 
 export const dynamic = 'force-dynamic'
 
@@ -36,14 +37,35 @@ function getSupabaseClientWithAuth(token: string) {
 
 export async function POST(request: NextRequest) {
   try {
-    const { code, user_id } = await request.json()
-
-    if (!code) {
+    // Rate limiting: 5 code activations per hour per IP
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+    const rateLimit = checkRateLimit(`activate-code:${ip}`, 5, 60 * 60 * 1000)
+    
+    if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'Код активации обязателен' },
+        { error: 'Слишком много попыток активации. Попробуйте позже.' },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString(),
+          }
+        }
+      )
+    }
+    
+    const body = await request.json()
+    
+    // Validate input
+    const validation = validateRequest(activateCodeSchema, body)
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: formatValidationError(validation.error) },
         { status: 400 }
       )
     }
+    
+    const { code, user_id } = validation.data
 
     // Determine authentication method
     const authHeader = request.headers.get('authorization')
@@ -209,8 +231,14 @@ export async function POST(request: NextRequest) {
     })
   } catch (error) {
     console.error('Activate code error:', error)
+    
+    // Don't expose internal error details in production
+    const isDevelopment = process.env.NODE_ENV === 'development'
     return NextResponse.json(
-      { error: 'Ошибка при активации кода' },
+      { 
+        error: 'Ошибка при активации кода',
+        ...(isDevelopment && { details: error instanceof Error ? error.message : 'Unknown error' })
+      },
       { status: 500 }
     )
   }

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { getSubscriptionStatus } from '@/lib/subscription'
+import { checkSubscriptionSchema, validateRequest, formatValidationError, checkRateLimit } from '@/lib/validation'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,15 +26,36 @@ function getSupabaseClient() {
  */
 export async function POST(request: NextRequest) {
   try {
-    const supabase = getSupabaseClient()
-    const { telegram_id } = await request.json()
-
-    if (!telegram_id) {
+    // Rate limiting: 20 checks per minute per IP
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+    const rateLimit = checkRateLimit(`subscription-check:${ip}`, 20, 60 * 1000)
+    
+    if (!rateLimit.allowed) {
       return NextResponse.json(
-        { error: 'telegram_id is required' },
+        { error: 'Too many requests. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString(),
+          }
+        }
+      )
+    }
+    
+    const supabase = getSupabaseClient()
+    const body = await request.json()
+    
+    // Validate input
+    const validation = validateRequest(checkSubscriptionSchema, body)
+    if (!validation.success) {
+      return NextResponse.json(
+        { error: formatValidationError(validation.error) },
         { status: 400 }
       )
     }
+    
+    const { telegram_id } = validation.data
 
     // Find user by telegram_id
     const { data: user, error: userError } = await supabase
@@ -78,12 +100,38 @@ export async function POST(request: NextRequest) {
  */
 export async function GET(request: NextRequest) {
   try {
+    // Rate limiting: 20 checks per minute per IP
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+    const rateLimit = checkRateLimit(`subscription-check-get:${ip}`, 20, 60 * 1000)
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Too many requests. Please try again later.' },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString(),
+          }
+        }
+      )
+    }
+    
     const searchParams = request.nextUrl.searchParams
-    const telegram_id = searchParams.get('telegram_id')
+    const telegram_id_str = searchParams.get('telegram_id')
 
-    if (!telegram_id) {
+    if (!telegram_id_str) {
       return NextResponse.json(
         { error: 'telegram_id parameter is required' },
+        { status: 400 }
+      )
+    }
+    
+    // Validate telegram_id is a number
+    const telegram_id = parseInt(telegram_id_str, 10)
+    if (isNaN(telegram_id) || telegram_id <= 0) {
+      return NextResponse.json(
+        { error: 'telegram_id must be a positive integer' },
         { status: 400 }
       )
     }
@@ -94,7 +142,7 @@ export async function GET(request: NextRequest) {
     const { data: user, error: userError } = await supabase
       .from('users')
       .select('id, telegram_id, plan, subscription_expires, balance')
-      .eq('telegram_id', parseInt(telegram_id))
+      .eq('telegram_id', telegram_id)
       .single()
 
     if (userError || !user) {

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import { createEnotPayment, formatAmountForEnot } from '@/lib/enot'
+import { checkRateLimit } from '@/lib/validation'
 
 export const dynamic = 'force-dynamic'
 
@@ -19,12 +20,48 @@ function getSupabaseClient() {
 
 export async function POST(request: NextRequest) {
   try {
+    // Rate limiting: 3 payment creations per 5 minutes per IP
+    const ip = request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || 'unknown'
+    const rateLimit = checkRateLimit(`create-payment:${ip}`, 3, 5 * 60 * 1000)
+    
+    if (!rateLimit.allowed) {
+      return NextResponse.json(
+        { error: 'Слишком много попыток создания платежей. Попробуйте позже.' },
+        { 
+          status: 429,
+          headers: {
+            'X-RateLimit-Remaining': '0',
+            'X-RateLimit-Reset': new Date(rateLimit.resetTime).toISOString(),
+          }
+        }
+      )
+    }
+    
     const supabase = getSupabaseClient()
-    const { plan_id, user_id, method, plan_type } = await request.json()
+    const body = await request.json()
+    const { plan_id, user_id, method, plan_type } = body
 
     if (!user_id || !method) {
       return NextResponse.json(
         { error: 'Отсутствуют обязательные параметры' },
+        { status: 400 }
+      )
+    }
+    
+    // Validate method
+    const validMethods = ['card', 'sbp', 'promo']
+    if (!validMethods.includes(method)) {
+      return NextResponse.json(
+        { error: 'Недопустимый метод оплаты' },
+        { status: 400 }
+      )
+    }
+    
+    // Validate UUID format for user_id
+    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
+    if (!uuidRegex.test(user_id)) {
+      return NextResponse.json(
+        { error: 'Неверный формат ID пользователя' },
         { status: 400 }
       )
     }
@@ -131,8 +168,14 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Create payment error:', error)
+    
+    // Don't expose internal error details in production
+    const isDevelopment = process.env.NODE_ENV === 'development'
     return NextResponse.json(
-      { error: 'Ошибка при создании платежа' },
+      { 
+        error: error instanceof Error ? error.message : 'Ошибка при создании платежа',
+        ...(isDevelopment && { details: error instanceof Error ? error.stack : 'Unknown error' })
+      },
       { status: 500 }
     )
   }
