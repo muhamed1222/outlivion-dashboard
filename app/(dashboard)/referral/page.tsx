@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import Link from 'next/link'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -24,11 +25,12 @@ export default function ReferralPage() {
   const supabase = createClient()
 
   const fetchData = useCallback(async () => {
-    const { data: { user } } = await supabase.auth.getUser()
+    const {
+      data: { user },
+    } = await supabase.auth.getUser()
 
     if (!user) return
 
-    // Получаем telegram_id пользователя
     const { data: userData } = await supabase
       .from('users')
       .select('telegram_id')
@@ -36,11 +38,10 @@ export default function ReferralPage() {
       .single()
 
     if (userData) {
-      const link = `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL?.replace('https://t.me/', '')}?start=${userData.telegram_id}`
-      setReferralLink(link)
+      const bot = process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL?.replace('https://t.me/', '') || 'outlivionbot'
+      setReferralLink(`https://t.me/${bot}?start=${userData.telegram_id}`)
     }
 
-    // Получаем статистику рефералов
     const { data: referrals } = await supabase
       .from('referrals')
       .select('*, users!referrals_referred_id_fkey(subscription_expires)')
@@ -49,7 +50,7 @@ export default function ReferralPage() {
     if (referrals) {
       const totalReferrals = referrals.length
       const totalEarned = referrals.reduce((sum, ref) => sum + Number(ref.reward_amount), 0)
-      const activeReferrals = referrals.filter(ref => {
+      const activeReferrals = referrals.filter((ref) => {
         const refUser = ref.users as { subscription_expires?: string }
         return refUser?.subscription_expires && new Date(refUser.subscription_expires) > new Date()
       }).length
@@ -73,131 +74,109 @@ export default function ReferralPage() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Реферальная программа</h1>
-        <p className="text-white/60">Приглашайте друзей и получайте бонусы</p>
+    <div className="mx-auto max-w-4xl space-y-6">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-semibold text-foreground">Реферальная программа</h1>
+        <p className="text-foreground-muted">Приглашайте друзей и получайте бонусы на баланс</p>
       </div>
 
-      {/* Статистика */}
       <div className="grid gap-6 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardDescription>Приглашено друзей</CardDescription>
-            <CardTitle className="text-4xl">{stats.total_referrals}</CardTitle>
-          </CardHeader>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardDescription>Активных рефералов</CardDescription>
-            <CardTitle className="text-4xl text-green-400">{stats.active_referrals}</CardTitle>
-          </CardHeader>
-        </Card>
-
-        <Card>
-          <CardHeader>
-            <CardDescription>Всего заработано</CardDescription>
-            <CardTitle className="text-4xl text-accent">
-              {formatCurrency(stats.total_earned)}
-            </CardTitle>
-          </CardHeader>
-        </Card>
+        {[
+          {
+            title: 'Приглашено друзей',
+            value: stats.total_referrals.toString(),
+          },
+          {
+            title: 'Активных рефералов',
+            value: stats.active_referrals.toString(),
+          },
+          {
+            title: 'Всего заработано',
+            value: formatCurrency(stats.total_earned),
+          },
+        ].map((item) => (
+          <Card key={item.title}>
+            <CardHeader>
+              <CardDescription>{item.title}</CardDescription>
+              <CardTitle className="text-3xl text-foreground">{item.value}</CardTitle>
+            </CardHeader>
+          </Card>
+        ))}
       </div>
 
-      {/* Реферальная ссылка */}
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle>Ваша реферальная ссылка</CardTitle>
-          <CardDescription>
-            Поделитесь этой ссылкой с друзьями
-          </CardDescription>
+          <CardDescription>Отправьте ссылку другу — бонус придёт после его первой оплаты</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-2">
+          <div className="flex flex-col gap-2 sm:flex-row">
             <input
               type="text"
               value={referralLink}
               readOnly
-              className="flex-1 h-11 rounded-lg border border-white/20 bg-white/5 px-4 text-sm text-white/80 font-mono"
+              className="flex-1 h-11 rounded-card border border-border bg-background px-4 text-sm font-medium text-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
             />
-            <Button onClick={handleCopy}>
-              {copied ? '✓ Скопировано' : 'Копировать'}
+            <Button onClick={handleCopy} className="shrink-0 px-6">
+              {copied ? 'Скопировано' : 'Копировать'}
             </Button>
           </div>
 
-          <div className="p-4 rounded-lg bg-accent/10 border border-accent/20">
-            <p className="text-sm text-white/80">
-              <strong className="text-accent">Как это работает:</strong>
-              <br />
-              1. Отправьте ссылку другу
-              <br />
-              2. Друг переходит по ссылке и регистрируется
-              <br />
-              3. После первой активации кода вы получаете <strong>50 ₽</strong> на баланс
-            </p>
+          <div className="rounded-card border border-accent-soft bg-accent-soft/60 px-4 py-3 text-sm text-foreground">
+            <p className="font-medium text-accent">Как это работает:</p>
+            <ol className="mt-2 space-y-1 text-foreground-muted">
+              <li>1. Поделитесь ссылкой в диалоге или чате.</li>
+              <li>2. Друг регистрируется и оформляет подписку.</li>
+              <li>
+                3. Вы получаете <span className="font-semibold text-foreground">50 ₽</span> на баланс автоматически.
+              </li>
+            </ol>
           </div>
         </CardContent>
       </Card>
 
-      {/* Условия */}
       <Card>
         <CardHeader>
           <CardTitle>Условия программы</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-accent font-bold">1</span>
+        <CardContent className="space-y-4">
+          {[
+            {
+              title: 'Бонус за приглашение',
+              description: '50 ₽ за каждого друга после его первой активации кода или оплаты.',
+            },
+            {
+              title: 'Без ограничений',
+              description: 'Количество приглашенных не ограничено — зарабатывайте столько, сколько захотите.',
+            },
+            {
+              title: 'Использование бонусов',
+              description: 'Оплачивайте подписку и продления накопленными средствами.',
+            },
+            {
+              title: 'Честная игра',
+              description: 'Создание фейковых аккаунтов запрещено и приведет к блокировке.',
+            },
+          ].map((item, index) => (
+            <div key={item.title} className="flex items-start gap-3 rounded-card border border-border bg-background px-4 py-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
+                {index + 1}
               </div>
               <div>
-                <h3 className="font-semibold mb-1">Бонус за приглашение</h3>
-                <p className="text-sm text-white/60">
-                  Получайте 50 ₽ за каждого приглашённого друга после его первой активации кода
-                </p>
+                <h3 className="text-sm font-semibold text-foreground">{item.title}</h3>
+                <p className="text-sm text-foreground-muted">{item.description}</p>
               </div>
             </div>
+          ))}
 
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-accent font-bold">2</span>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">Без ограничений</h3>
-                <p className="text-sm text-white/60">
-                  Приглашайте неограниченное количество друзей и зарабатывайте больше
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-accent font-bold">3</span>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">Использование бонусов</h3>
-                <p className="text-sm text-white/60">
-                  Заработанные средства можно использовать для продления подписки
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-3">
-              <div className="w-8 h-8 rounded-full bg-accent/20 flex items-center justify-center flex-shrink-0">
-                <span className="text-accent font-bold">4</span>
-              </div>
-              <div>
-                <h3 className="font-semibold mb-1">Честная игра</h3>
-                <p className="text-sm text-white/60">
-                  Запрещается создание фейковых аккаунтов. Нарушители будут заблокированы
-                </p>
-              </div>
-            </div>
-          </div>
+          <Link
+            href="/help"
+            className="inline-flex items-center text-sm font-medium text-accent transition hover:text-accent-hover"
+          >
+            Нужна помощь? Свяжитесь с нами →
+          </Link>
         </CardContent>
       </Card>
     </div>
   )
 }
-

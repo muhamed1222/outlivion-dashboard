@@ -1,6 +1,7 @@
 import { redirect } from 'next/navigation'
 import { createClient } from '@/lib/supabase/server'
 import { Button } from '@/components/ui/Button'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/Card'
 import Link from 'next/link'
 import { formatCurrency, isSubscriptionActive } from '@/lib/utils'
 import { ReferralCard } from '@/components/ReferralCard'
@@ -37,50 +38,105 @@ export default async function DashboardPage() {
   const referralLink = `https://t.me/${process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL?.replace('https://t.me/', '') || 'outlivionbot'}?start=${userData?.telegram_id}`
 
   return (
-    <div className="pb-8">
-      {/* Баланс */}
-      <div className="bg-gradient-to-br from-gray-900 to-gray-850 border border-gray-800 rounded-3xl p-6 mb-6 shadow-xl">
-        <p className="text-gray-400 text-sm mb-2">Баланс</p>
-        <h1 className="text-5xl font-bold mb-6 text-white">{formatCurrency(balance)}</h1>
-        
-        <div className="space-y-3">
-          <Link href="/pay">
-            <Button className="w-full h-14 text-lg bg-accent hover:bg-accent-hover rounded-2xl font-semibold shadow-lg shadow-accent/20 transition-all">
-              Пополнить баланс
-            </Button>
-          </Link>
-          
-          <Link href="/code">
-            <Button className="w-full h-14 text-lg bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-2xl font-semibold transition-all">
-              Обещанный платёж
-            </Button>
-          </Link>
-        </div>
+    <div className="space-y-8 pb-10">
+      <div className="grid gap-6 lg:grid-cols-[2fr,1fr]">
+        <Card>
+          <CardHeader className="flex flex-row items-start justify-between gap-6 pb-6">
+            <div>
+              <p className="text-sm font-medium uppercase tracking-wide text-foreground-subtle">Текущий баланс</p>
+              <h1 className="mt-3 text-4xl font-semibold text-foreground">{formatCurrency(balance)}</h1>
+            </div>
+            <div className="rounded-card bg-accent-soft px-4 py-2 text-sm font-medium text-accent">
+              {isActive ? 'Подписка активна' : 'Подписка приостановлена'}
+            </div>
+          </CardHeader>
+          <CardContent className="flex flex-col gap-4">
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Link href="/pay">
+                <Button className="w-full justify-center">Пополнить баланс</Button>
+              </Link>
+              <Link href="/code">
+                <Button variant="secondary" className="w-full justify-center">
+                  Активировать код
+                </Button>
+              </Link>
+            </div>
+            <Link
+              href="/history"
+              className="inline-flex items-center justify-center text-sm font-medium text-accent transition hover:text-accent-hover"
+            >
+              Смотреть историю операций →
+            </Link>
+          </CardContent>
+        </Card>
 
-        <Link href="/history" className="block text-center mt-4 text-gray-400 hover:text-accent transition">
-          История платежей
-        </Link>
+        <Card>
+          <CardHeader className="pb-5">
+            <CardTitle className="text-lg">Подписка</CardTitle>
+            <CardDescription>
+              {plan
+                ? `Тариф ${plan.name} · ${formatCurrency(plan.price)} в месяц`
+                : 'Вы еще не выбрали тариф — активируйте код или пополните баланс'}
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="rounded-card border border-border bg-background px-4 py-3 text-sm text-foreground">
+              {subscriptionExpires ? (
+                <div className="space-y-1">
+                  <p className="font-medium text-foreground">До окончания подписки:</p>
+                  <p className="text-foreground-muted">
+                    {new Date(subscriptionExpires).toLocaleDateString('ru-RU', {
+                      day: 'numeric',
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </p>
+                </div>
+              ) : (
+                <div className="space-y-1">
+                  <p className="font-medium text-foreground">Подписка не активна</p>
+                  <p className="text-foreground-muted">
+                    Пополните баланс или активируйте код, чтобы получить доступ к VPN.
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {(balance < 0 || !isActive) && (
+              <div className="rounded-card bg-rose-50 px-4 py-3 text-sm text-rose-600">
+                Недостаточно средств. Пополните баланс, чтобы продолжить пользоваться сервисом.
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Предупреждение о балансе */}
-      {(balance < 0 || !isActive) && (
-        <div className="mb-6 bg-red-500/10 border border-red-500/30 rounded-2xl p-4">
-          <p className="text-red-400 font-medium text-center text-sm">
-            Недостаточно средств на балансе, аккаунт приостановлен. Для продолжения работы пополните баланс
-          </p>
-        </div>
-      )}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-lg">Быстрые действия</CardTitle>
+          <CardDescription>Одним кликом получите доступ к ключевым разделам кабинета</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              { title: 'Оплата', description: 'Пополнение через карту и СБП', href: '/pay' },
+              { title: 'Активация', description: 'Промокоды и доступ', href: '/code' },
+              { title: 'Рефералы', description: 'Бонусы за друзей', href: '/referral' },
+              { title: 'Помощь', description: 'Ответы и поддержка', href: '/help' },
+            ].map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="group flex flex-col gap-2 rounded-card border border-transparent bg-background p-4 shadow-soft transition hover:border-accent hover:bg-accent-soft"
+              >
+                <span className="text-sm font-semibold text-foreground">{item.title}</span>
+                <span className="text-xs text-foreground-muted">{item.description}</span>
+              </Link>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-      {/* Тариф */}
-      {plan && (
-        <div className="text-center mb-8">
-          <p className="text-gray-500 text-sm">
-            Тариф {formatCurrency(plan.price)}/мес за одно устройство
-          </p>
-        </div>
-      )}
-
-      {/* Реферальная программа */}
       <ReferralCard referralLink={referralLink} />
     </div>
   )

@@ -65,10 +65,10 @@ export default function CodePage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Активация кода</h1>
-        <p className="text-white/60">Введите промокод для продления подписки</p>
+    <div className="mx-auto max-w-2xl space-y-6">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-semibold text-foreground">Активация кода</h1>
+        <p className="text-foreground-muted">Введите промокод, чтобы продлить доступ к VPN</p>
       </div>
 
       <Card>
@@ -95,8 +95,8 @@ export default function CodePage() {
               <div
                 className={`p-4 rounded-lg ${
                   message.type === 'success'
-                    ? 'bg-green-500/10 border border-green-500/20 text-green-400'
-                    : 'bg-red-500/10 border border-red-500/20 text-red-400'
+                    ? 'border border-green-200 bg-green-50 text-green-600'
+                    : 'border border-rose-200 bg-rose-50 text-rose-600'
                 }`}
               >
                 {message.text}
@@ -111,42 +111,36 @@ export default function CodePage() {
       </Card>
 
       <Card>
-        <CardHeader>
+        <CardHeader className="pb-3">
           <CardTitle>Как получить промокод?</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-start gap-3">
-              <div className="text-accent font-bold">1.</div>
+        <CardContent className="space-y-4">
+          {[
+            {
+              title: 'Реферальная программа',
+              description: 'Приглашайте друзей и получайте бонусы на баланс',
+            },
+            {
+              title: 'Акции и розыгрыши',
+              description: 'Следите за новостями в нашем Telegram-канале',
+            },
+            {
+              title: 'Авторизованные партнеры',
+              description: 'Покупайте промокоды у проверенных продавцов',
+            },
+          ].map((item, index) => (
+            <div key={item.title} className="flex items-start gap-4 rounded-card border border-border bg-background px-4 py-3">
+              <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-sm font-semibold text-accent">
+                {index + 1}
+              </div>
               <div>
-                <p className="font-medium mb-1">Реферальная программа</p>
-                <p className="text-sm text-white/60">
-                  Приглашайте друзей и получайте бонусы
-                </p>
+                <p className="text-sm font-medium text-foreground">{item.title}</p>
+                <p className="text-sm text-foreground-muted">{item.description}</p>
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="text-accent font-bold">2.</div>
-              <div>
-                <p className="font-medium mb-1">Акции и розыгрыши</p>
-                <p className="text-sm text-white/60">
-                  Следите за новостями в нашем Telegram канале
-                </p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="text-accent font-bold">3.</div>
-              <div>
-                <p className="font-medium mb-1">Покупка у партнёров</p>
-                <p className="text-sm text-white/60">
-                  Список авторизованных продавцов в поддержке
-                </p>
-              </div>
-            </div>
-          </div>
+          ))}
         </CardContent>
       </Card>
     </div>
   )
 }
-

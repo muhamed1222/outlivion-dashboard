@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from './ui/Button'
 
 interface ReferralCardProps {
@@ -18,38 +19,52 @@ export function ReferralCard({ referralLink }: ReferralCardProps) {
   }
 
   return (
-    <div className="bg-gradient-to-br from-gray-900 to-gray-850 border border-gray-800 rounded-3xl p-6 shadow-xl">
-      <h2 className="text-xl font-bold mb-3 text-white">
-        🎁 Пригласи друга и получи <span className="text-accent">50₽</span>
-      </h2>
-      
-      <p className="text-gray-400 mb-4 text-sm leading-relaxed">
-        Отправьте ссылку другу. Когда ваш друг зайдёт в наш сервис и зарегистрируется, вы получите 50₽ на баланс!
-      </p>
-      
-      <p className="text-gray-500 text-xs mb-3">
-        Скопируйте и отправьте ссылку другу:
-      </p>
-      
-      <div className="flex gap-2 mb-4">
-        <input
-          type="text"
-          value={referralLink}
-          readOnly
-          className="flex-1 bg-gray-950 border border-gray-800 rounded-xl px-4 py-3 text-sm text-gray-300 focus:border-accent focus:outline-none"
-        />
-        <Button
-          onClick={handleCopy}
-          className="bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl px-6 transition-all"
-        >
-          {copied ? '✓' : '📋'}
-        </Button>
-      </div>
+    <Card className="overflow-hidden">
+      <CardHeader className="gap-3 pb-0">
+        <CardTitle className="text-xl font-semibold text-foreground">
+          Пригласите друзей и получите <span className="text-accent">50 ₽</span>
+        </CardTitle>
+        <p className="text-sm text-foreground-muted">
+          Поделитесь персональной ссылкой. После первой покупки друга бонус автоматически поступит на ваш баланс.
+        </p>
+      </CardHeader>
+      <CardContent className="mt-6 flex flex-col gap-4">
+        <div className="space-y-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-foreground-subtle">
+            Ваша ссылка
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <input
+              type="text"
+              value={referralLink}
+              readOnly
+              className="flex-1 rounded-card border border-border bg-background px-4 py-3 text-sm font-medium text-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/30"
+            />
+            <Button
+              onClick={handleCopy}
+              className="shrink-0 px-6"
+            >
+              {copied ? 'Скопировано' : 'Скопировать'}
+            </Button>
+          </div>
+        </div>
 
-      <Link href="/referral" className="block text-center text-sm text-accent hover:text-accent-hover transition">
-        Подробнее о реферальной программе →
-      </Link>
-    </div>
+        <div className="rounded-card bg-accent-soft/70 px-4 py-3 text-sm text-foreground">
+          <p className="font-medium text-accent">Как получить бонус?</p>
+          <ul className="mt-2 space-y-1 text-foreground-muted">
+            <li>1. Отправьте ссылку другу или коллеге.</li>
+            <li>2. Он активирует подписку в Outlivion.</li>
+            <li>3. Вы получаете 50 ₽ на баланс автоматически.</li>
+          </ul>
+        </div>
+
+        <Link
+          href="/referral"
+          className="inline-flex items-center text-sm font-medium text-accent transition hover:text-accent-hover"
+        >
+          Узнать больше о программе →
+        </Link>
+      </CardContent>
+    </Card>
   )
 }
-

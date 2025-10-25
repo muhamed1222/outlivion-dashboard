@@ -9,7 +9,7 @@ const Card = forwardRef<HTMLDivElement, CardProps>(
       <div
         ref={ref}
         className={cn(
-          'rounded-xl bg-white/5 border border-white/10 p-6 backdrop-blur-sm',
+          'rounded-card bg-background-surface border border-border p-6 shadow-card',
           className
         )}
         {...props}
@@ -25,7 +25,7 @@ const CardHeader = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
     return (
       <div
         ref={ref}
-        className={cn('flex flex-col space-y-1.5 pb-4', className)}
+        className={cn('flex flex-col gap-2 pb-4', className)}
         {...props}
       />
     )
@@ -53,7 +53,7 @@ const CardDescription = forwardRef<HTMLParagraphElement, HTMLAttributes<HTMLPara
     return (
       <p
         ref={ref}
-        className={cn('text-sm text-white/60', className)}
+        className={cn('text-sm text-foreground-muted', className)}
         {...props}
       />
     )
@@ -87,4 +87,3 @@ const CardFooter = forwardRef<HTMLDivElement, HTMLAttributes<HTMLDivElement>>(
 CardFooter.displayName = 'CardFooter'
 
 export { Card, CardHeader, CardFooter, CardTitle, CardDescription, CardContent }
-

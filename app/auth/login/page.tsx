@@ -67,13 +67,13 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4">
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold mb-2">
+        <div className="mb-8 text-center">
+          <h1 className="mb-2 text-4xl font-semibold text-foreground">
             <span className="text-accent">Outlivion</span>
           </h1>
-          <p className="text-white/60">VPN Dashboard</p>
+          <p className="text-foreground-muted">VPN Dashboard</p>
         </div>
 
         <Card>
@@ -85,15 +85,15 @@ export default function LoginPage() {
           </CardHeader>
           <CardContent className="space-y-4">
             {error && (
-              <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
+              <div className="rounded-card border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
                 {error}
               </div>
             )}
 
             {token ? (
               <div className="text-center py-4">
-                <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-accent"></div>
-                <p className="mt-4 text-white/60">Авторизация...</p>
+                <div className="inline-block h-8 w-8 animate-spin rounded-full border-b-2 border-accent"></div>
+                <p className="mt-4 text-foreground-muted">Авторизация...</p>
               </div>
             ) : (
               <div className="space-y-4">
@@ -104,7 +104,7 @@ export default function LoginPage() {
                   isLoading={isLoading}
                 >
                   <svg
-                    className="w-5 h-5 mr-2"
+                    className="mr-2 h-5 w-5"
                     fill="currentColor"
                     viewBox="0 0 24 24"
                     xmlns="http://www.w3.org/2000/svg"
@@ -114,7 +114,7 @@ export default function LoginPage() {
                   Войти через Telegram
                 </Button>
 
-                <div className="text-center text-sm text-white/40">
+                <div className="text-center text-sm text-foreground-subtle">
                   <p>Нажмите на кнопку, чтобы получить</p>
                   <p>ссылку для входа в боте</p>
                 </div>
@@ -123,13 +123,13 @@ export default function LoginPage() {
           </CardContent>
         </Card>
 
-        <div className="mt-6 text-center text-sm text-white/40">
+        <div className="mt-6 text-center text-sm text-foreground-subtle">
           <p>Нет аккаунта? Напишите в</p>
           <a
             href={process.env.NEXT_PUBLIC_SUPPORT_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="text-accent hover:underline"
+            className="text-accent transition hover:text-accent-hover"
           >
             Telegram поддержку
           </a>
@@ -138,4 +138,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

@@ -29,9 +29,8 @@ export function LoadingPage() {
     <div className="min-h-screen flex items-center justify-center">
       <div className="text-center">
         <Loading size="lg" />
-        <p className="mt-4 text-white/60">Загрузка...</p>
+        <p className="mt-4 text-foreground-muted">Загрузка...</p>
       </div>
     </div>
   )
 }
-

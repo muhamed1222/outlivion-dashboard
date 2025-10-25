@@ -8,42 +8,49 @@ const faqData = [
   {
     id: 1,
     question: 'Как начать пользоваться VPN?',
-    answer: 'Скачайте приложение Outlivion из App Store или Google Play, авторизуйтесь через Telegram и активируйте подписку с помощью промокода или оплаты.',
+    answer:
+      'Скачайте приложение Outlivion из App Store или Google Play, авторизуйтесь через Telegram и активируйте подписку с помощью промокода или оплаты.',
   },
   {
     id: 2,
     question: 'Как пополнить баланс?',
-    answer: 'Перейдите в раздел "Пополнить", выберите нужный тариф и способ оплаты. Средства поступят на баланс автоматически после успешной оплаты.',
+    answer:
+      'Перейдите в раздел «Пополнить», выберите тариф и способ оплаты. Средства поступят на баланс сразу после успешной транзакции.',
   },
   {
     id: 3,
     question: 'Что делать, если VPN не подключается?',
-    answer: 'Проверьте интернет-соединение, убедитесь, что подписка активна, попробуйте переключиться на другой сервер. Если проблема сохраняется — обратитесь в поддержку.',
+    answer:
+      'Проверьте интернет-соединение, убедитесь, что подписка активна, попробуйте другой сервер. Если проблема сохраняется — напишите в поддержку.',
   },
   {
     id: 4,
     question: 'Как работает реферальная программа?',
-    answer: 'Отправьте свою реферальную ссылку другу. После его регистрации и первой активации кода вы получите 50 ₽ на баланс.',
+    answer:
+      'Поделитесь персональной ссылкой. После первой активации кода приглашённого пользователя вы получите 50 ₽ на баланс.',
   },
   {
     id: 5,
     question: 'Можно ли использовать один аккаунт на нескольких устройствах?',
-    answer: 'Да, вы можете использовать один аккаунт на неограниченном количестве устройств одновременно.',
+    answer: 'Да, один аккаунт можно подключать к нескольким устройствам одновременно.',
   },
   {
     id: 6,
     question: 'Как отменить подписку?',
-    answer: 'Автопродление происходит при наличии средств на балансе. Чтобы отменить, просто не пополняйте баланс перед датой следующего списания.',
+    answer:
+      'Автопродление происходит при наличии средств на балансе. Достаточно не пополнять баланс перед датой списания.',
   },
   {
     id: 7,
     question: 'Безопасно ли пользоваться VPN?',
-    answer: 'Да, мы используем современные протоколы шифрования и не храним логи вашей активности. Ваши данные в полной безопасности.',
+    answer:
+      'Мы применяем современные протоколы шифрования и не сохраняем логи активности. Ваши данные под надёжной защитой.',
   },
   {
     id: 8,
     question: 'В каких странах работает VPN?',
-    answer: 'Наши серверы расположены в более чем 50 странах мира. Вы можете подключиться к любому из них через приложение.',
+    answer:
+      'Сервера расположены более чем в 50 странах мира — вы сможете подключиться к нужной локации за пару кликов.',
   },
 ]
 
@@ -51,50 +58,51 @@ export default function HelpPage() {
   const [openFaq, setOpenFaq] = useState<number | null>(null)
 
   const toggleFaq = (id: number) => {
-    setOpenFaq(openFaq === id ? null : id)
+    setOpenFaq((prev) => (prev === id ? null : id))
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Помощь и поддержка</h1>
-        <p className="text-white/60">Ответы на часто задаваемые вопросы</p>
+    <div className="mx-auto max-w-4xl space-y-6">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-semibold text-foreground">Помощь и поддержка</h1>
+        <p className="text-foreground-muted">Найдите ответ или быстро свяжитесь с нашей командой</p>
       </div>
 
-      {/* Контакты */}
       <Card>
         <CardHeader>
           <CardTitle>Связаться с нами</CardTitle>
-          <CardDescription>
-            Если у вас возникли вопросы или проблемы, мы всегда готовы помочь
-          </CardDescription>
+          <CardDescription>Отвечаем оперативно и помогаем в решении любых вопросов</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="grid gap-4 sm:grid-cols-2">
-            <a
-              href={process.env.NEXT_PUBLIC_SUPPORT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button variant="secondary" className="w-full h-20">
-                <div className="text-center">
-                  <div className="text-2xl mb-2">💬</div>
-                  <div className="font-medium">Telegram чат</div>
-                  <div className="text-xs text-white/60">Ответим в течение часа</div>
+            <a href={process.env.NEXT_PUBLIC_SUPPORT_URL} target="_blank" rel="noopener noreferrer">
+              <Button variant="secondary" className="h-20 w-full justify-start px-5">
+                <div className="flex w-full items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent">
+                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.6}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 5.5h16a1.5 1.5 0 011.5 1.5v10a1.5 1.5 0 01-1.5 1.5H4A1.5 1.5 0 012.5 17V7A1.5 1.5 0 014 5.5z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 8l8 4 8-4" />
+                    </svg>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-foreground">Telegram чат</p>
+                    <p className="text-xs text-foreground-muted">Ответим в течение часа</p>
+                  </div>
                 </div>
               </Button>
             </a>
-
-            <a
-              href={process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <Button variant="secondary" className="w-full h-20">
-                <div className="text-center">
-                  <div className="text-2xl mb-2">🤖</div>
-                  <div className="font-medium">Telegram бот</div>
-                  <div className="text-xs text-white/60">Автоматические ответы 24/7</div>
+            <a href={process.env.NEXT_PUBLIC_TELEGRAM_BOT_URL} target="_blank" rel="noopener noreferrer">
+              <Button variant="secondary" className="h-20 w-full justify-start px-5">
+                <div className="flex w-full items-center gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-accent-soft text-accent">
+                    <svg viewBox="0 0 24 24" className="h-5 w-5" fill="none" stroke="currentColor" strokeWidth={1.6}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 2.5l9 8-3.3 1.2a1 1 0 00-.6.6L15 20l-3-2-3 2 1-5.7a1 1 0 00-.4-.9L3 10.5l9-8z" />
+                    </svg>
+                  </div>
+                  <div className="text-left">
+                    <p className="text-sm font-semibold text-foreground">Telegram бот</p>
+                    <p className="text-xs text-foreground-muted">Автоматические ответы 24/7</p>
+                  </div>
                 </div>
               </Button>
             </a>
@@ -102,91 +110,93 @@ export default function HelpPage() {
         </CardContent>
       </Card>
 
-      {/* FAQ */}
       <Card>
         <CardHeader>
           <CardTitle>Частые вопросы</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {faqData.map((faq) => (
-              <div
-                key={faq.id}
-                className="rounded-lg border border-white/10 overflow-hidden"
+        <CardContent className="space-y-2">
+          {faqData.map((faq) => (
+            <div key={faq.id} className="rounded-card border border-border bg-background">
+              <button
+                onClick={() => toggleFaq(faq.id)}
+                className="flex w-full items-center justify-between px-4 py-3 text-left transition hover:bg-accent-soft/60"
               >
-                <button
-                  onClick={() => toggleFaq(faq.id)}
-                  className="w-full p-4 text-left hover:bg-white/5 transition-colors flex items-center justify-between"
+                <span className="text-sm font-semibold text-foreground">{faq.question}</span>
+                <svg
+                  className={`h-4 w-4 text-foreground-subtle transition-transform ${openFaq === faq.id ? 'rotate-180' : ''}`}
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth={1.6}
                 >
-                  <span className="font-medium">{faq.question}</span>
-                  <svg
-                    className={`w-5 h-5 transition-transform ${
-                      openFaq === faq.id ? 'rotate-180' : ''
-                    }`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                </button>
-                {openFaq === faq.id && (
-                  <div className="px-4 pb-4 text-white/70">
-                    {faq.answer}
-                  </div>
-                )}
-              </div>
-            ))}
-          </div>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6.5 9.5L12 15l5.5-5.5" />
+                </svg>
+              </button>
+              {openFaq === faq.id && (
+                <div className="px-4 pb-4 text-sm text-foreground-muted">{faq.answer}</div>
+              )}
+            </div>
+          ))}
         </CardContent>
       </Card>
 
-      {/* Полезные ссылки */}
       <Card>
         <CardHeader>
           <CardTitle>Полезные ссылки</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
+        <CardContent className="space-y-3">
+          {[
+            {
+              href: '#',
+              title: 'Скачать приложение',
+              description: 'Доступно для iOS и Android',
+              icon: (
+                <svg viewBox="0 0 24 24" className="h-5 w-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M16 3.5H8A2.5 2.5 0 005.5 6v12A2.5 2.5 0 008 20.5h8a2.5 2.5 0 002.5-2.5V6A2.5 2.5 0 0016 3.5z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 17h.01" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9.5 6.5h5" />
+                </svg>
+              ),
+            },
+            {
+              href: '#',
+              title: 'База знаний',
+              description: 'Пошаговые инструкции и советы',
+              icon: (
+                <svg viewBox="0 0 24 24" className="h-5 w-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M6 4.5h12a1.5 1.5 0 011.5 1.5v12a1.5 1.5 0 01-1.5 1.5H6A1.5 1.5 0 014.5 18V6A1.5 1.5 0 016 4.5z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8 8h8M8 12h8M8 16h5" />
+                </svg>
+              ),
+            },
+            {
+              href: '#',
+              title: 'Новости и обновления',
+              description: 'Актуальная информация в Telegram-канале',
+              icon: (
+                <svg viewBox="0 0 24 24" className="h-5 w-5 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M4 5.5l16-2v17l-16-2V5.5z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M10 9l5 3-5 3V9z" />
+                </svg>
+              ),
+            },
+          ].map((item) => (
             <a
-              href="#"
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors"
+              key={item.title}
+              href={item.href}
+              className="flex items-center gap-3 rounded-card border border-border bg-background px-4 py-3 transition hover:border-accent-soft hover:text-accent"
             >
-              <div className="text-xl">📱</div>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft">
+                {item.icon}
+              </div>
               <div>
-                <div className="font-medium">Скачать приложение</div>
-                <div className="text-sm text-white/60">iOS и Android</div>
+                <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                <p className="text-xs text-foreground-muted">{item.description}</p>
               </div>
             </a>
-            <a
-              href="#"
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors"
-            >
-              <div className="text-xl">📚</div>
-              <div>
-                <div className="font-medium">База знаний</div>
-                <div className="text-sm text-white/60">Подробные инструкции</div>
-              </div>
-            </a>
-            <a
-              href="#"
-              className="flex items-center gap-3 p-3 rounded-lg hover:bg-white/5 transition-colors"
-            >
-              <div className="text-xl">📢</div>
-              <div>
-                <div className="font-medium">Новости и обновления</div>
-                <div className="text-sm text-white/60">Telegram канал</div>
-              </div>
-            </a>
-          </div>
+          ))}
         </CardContent>
       </Card>
     </div>
   )
 }
-

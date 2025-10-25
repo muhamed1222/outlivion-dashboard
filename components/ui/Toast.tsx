@@ -27,10 +27,10 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
   if (!visible) return null
 
   const styles = {
-    success: 'bg-green-500/10 border-green-500/20 text-green-400',
-    error: 'bg-red-500/10 border-red-500/20 text-red-400',
-    info: 'bg-blue-500/10 border-blue-500/20 text-blue-400',
-    warning: 'bg-amber-500/10 border-amber-500/20 text-amber-400',
+    success: 'border-green-200 text-green-600 bg-green-50',
+    error: 'border-rose-200 text-rose-600 bg-rose-50',
+    info: 'border-blue-200 text-blue-600 bg-blue-50',
+    warning: 'border-amber-200 text-amber-600 bg-amber-50',
   }
 
   const icons = {
@@ -43,24 +43,21 @@ export function Toast({ message, type = 'info', duration = 3000, onClose }: Toas
   return (
     <div
       className={cn(
-        'fixed top-4 right-4 z-50 p-4 rounded-lg border backdrop-blur-sm animate-in slide-in-from-top-2',
+        'fixed top-5 right-5 z-50 flex items-center gap-3 rounded-card border px-5 py-4 shadow-soft animate-in slide-in-from-top-2',
         styles[type]
       )}
     >
-      <div className="flex items-center gap-3">
-        <span className="text-xl">{icons[type]}</span>
-        <p className="text-sm font-medium">{message}</p>
-        <button
-          onClick={() => {
-            setVisible(false)
-            onClose?.()
-          }}
-          className="ml-4 hover:opacity-70"
-        >
-          ✕
-        </button>
-      </div>
+      <span className="text-lg">{icons[type]}</span>
+      <p className="text-sm font-medium text-foreground">{message}</p>
+      <button
+        onClick={() => {
+          setVisible(false)
+          onClose?.()
+        }}
+        className="ml-auto text-foreground-muted transition hover:text-foreground"
+      >
+        ✕
+      </button>
     </div>
   )
 }
-

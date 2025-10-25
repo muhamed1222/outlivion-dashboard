@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import type { JSX } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card'
 import { Button } from '@/components/ui/Button'
@@ -14,6 +15,43 @@ type Plan = {
 }
 
 type PaymentMethod = 'card' | 'sbp' | 'promo'
+
+const paymentOptions: Array<{ key: PaymentMethod; title: string; description: string; icon: JSX.Element }> = [
+  {
+    key: 'card',
+    title: 'Банковская карта',
+    description: 'Visa, Mastercard и МИР',
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-6 w-6 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6}>
+        <rect x="3" y="5.5" width="18" height="13" rx="2.5" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8 15.5h2" />
+      </svg>
+    ),
+  },
+  {
+    key: 'sbp',
+    title: 'Система быстрых платежей',
+    description: 'Оплата по номеру телефона или QR-коду',
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-6 w-6 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M7 5.5h7.5a2.5 2.5 0 012.5 2.5V18M7 5.5A2.5 2.5 0 004.5 8v9a1.5 1.5 0 001.5 1.5h11" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M10 9h4M10 13h2.5M10 17h2.5" />
+      </svg>
+    ),
+  },
+  {
+    key: 'promo',
+    title: 'Промокод',
+    description: 'Использование ранее приобретённого кода',
+    icon: (
+      <svg viewBox="0 0 24 24" className="h-6 w-6 text-accent" fill="none" stroke="currentColor" strokeWidth={1.6}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M5 7.5a2.5 2.5 0 004-1.94A2.5 2.5 0 0012 3.5a2.5 2.5 0 003 2.06A2.5 2.5 0 0019 7.5a2.5 2.5 0 01-1.5 2.29M5 7.5H3.75A1.75 1.75 0 002 9.25v5.5A1.75 1.75 0 003.75 16.5H9.5l2.5 3 2.5-3h5.75A1.75 1.75 0 0022 14.75v-5.5A1.75 1.75 0 0020.25 7.5H19" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M8.5 12h7" />
+      </svg>
+    ),
+  },
+]
 
 export default function PayPage() {
   const [plans, setPlans] = useState<Plan[]>([])
@@ -52,7 +90,9 @@ export default function PayPage() {
     setError(null)
 
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const {
+        data: { user },
+      } = await supabase.auth.getUser()
 
       if (!user) {
         throw new Error('Необходима авторизация')
@@ -76,7 +116,6 @@ export default function PayPage() {
 
       const { payment_url } = await response.json()
 
-      // Редирект на страницу оплаты
       if (payment_url) {
         window.location.href = payment_url
       }
@@ -88,50 +127,45 @@ export default function PayPage() {
     }
   }
 
-  const selectedPlanData = plans.find(p => p.id === selectedPlan)
+  const selectedPlanData = plans.find((plan) => plan.id === selectedPlan)
 
   return (
-    <div className="max-w-4xl mx-auto space-y-6">
-      <div>
-        <h1 className="text-3xl font-bold mb-2">Пополнение баланса</h1>
-        <p className="text-white/60">Выберите тариф и способ оплаты</p>
+    <div className="mx-auto max-w-4xl space-y-6">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-semibold text-foreground">Пополнение баланса</h1>
+        <p className="text-foreground-muted">Выберите подходящий тариф и удобный способ оплаты</p>
       </div>
 
       {error && (
-        <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400">
+        <div className="rounded-card border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
           {error}
         </div>
       )}
 
-      {/* Выбор тарифа */}
       <Card>
         <CardHeader>
           <CardTitle>Выберите тариф</CardTitle>
-          <CardDescription>Все тарифы включают безлимитный трафик</CardDescription>
+          <CardDescription>Безлимитный трафик и 24/7 поддержка в каждом плане</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pb-6">
           <div className="grid gap-4 md:grid-cols-3">
             {plans.map((plan) => (
               <button
                 key={plan.id}
                 onClick={() => setSelectedPlan(plan.id)}
-                className={`p-6 rounded-lg border-2 transition-all text-left ${
+                className={`flex flex-col gap-2 rounded-card border bg-background px-5 py-6 text-left transition ${
                   selectedPlan === plan.id
-                    ? 'border-accent bg-accent/10'
-                    : 'border-white/10 hover:border-white/20'
+                    ? 'border-accent bg-accent-soft shadow-soft'
+                    : 'border-border hover:border-accent-soft'
                 }`}
               >
-                <h3 className="text-xl font-bold mb-2">{plan.name}</h3>
-                <div className="text-3xl font-bold text-accent mb-1">
-                  {formatCurrency(plan.price)}
-                </div>
-                <p className="text-sm text-white/60">
-                  {plan.duration_days} {plan.duration_days === 30 ? 'дней' : 'дней'}
-                </p>
+                <h3 className="text-lg font-semibold text-foreground">{plan.name}</h3>
+                <div className="text-2xl font-semibold text-accent">{formatCurrency(plan.price)}</div>
+                <p className="text-sm text-foreground-muted">{plan.duration_days} дней доступа</p>
                 {plan.duration_days === 365 && (
-                  <div className="mt-2 inline-block px-2 py-1 bg-green-500/20 text-green-400 text-xs rounded">
-                    Выгодно!
-                  </div>
+                  <span className="mt-3 inline-flex w-max items-center rounded-pill bg-emerald-100 px-3 py-1 text-xs font-medium text-emerald-600">
+                    Лучшее предложение
+                  </span>
                 )}
               </button>
             ))}
@@ -139,81 +173,47 @@ export default function PayPage() {
         </CardContent>
       </Card>
 
-      {/* Способ оплаты */}
       <Card>
         <CardHeader>
           <CardTitle>Способ оплаты</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
+        <CardContent className="space-y-3">
+          {paymentOptions.map((option) => (
             <button
-              onClick={() => setPaymentMethod('card')}
-              className={`w-full p-4 rounded-lg border-2 transition-all flex items-center gap-3 ${
-                paymentMethod === 'card'
-                  ? 'border-accent bg-accent/10'
-                  : 'border-white/10 hover:border-white/20'
+              key={option.key}
+              onClick={() => setPaymentMethod(option.key)}
+              className={`flex w-full items-center gap-3 rounded-card border bg-background px-4 py-4 text-left transition ${
+                paymentMethod === option.key
+                  ? 'border-accent bg-accent-soft shadow-soft'
+                  : 'border-border hover:border-accent-soft'
               }`}
             >
-              <div className="text-2xl">💳</div>
-              <div className="text-left">
-                <div className="font-semibold">Банковская карта</div>
-                <div className="text-sm text-white/60">Visa, Mastercard, МИР</div>
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-accent-soft">
+                {option.icon}
+              </div>
+              <div className="flex flex-col">
+                <span className="text-sm font-semibold text-foreground">{option.title}</span>
+                <span className="text-xs text-foreground-muted">{option.description}</span>
               </div>
             </button>
-
-            <button
-              onClick={() => setPaymentMethod('sbp')}
-              className={`w-full p-4 rounded-lg border-2 transition-all flex items-center gap-3 ${
-                paymentMethod === 'sbp'
-                  ? 'border-accent bg-accent/10'
-                  : 'border-white/10 hover:border-white/20'
-              }`}
-            >
-              <div className="text-2xl">📱</div>
-              <div className="text-left">
-                <div className="font-semibold">Система быстрых платежей (СБП)</div>
-                <div className="text-sm text-white/60">Оплата по номеру телефона</div>
-              </div>
-            </button>
-
-            <button
-              onClick={() => setPaymentMethod('promo')}
-              className={`w-full p-4 rounded-lg border-2 transition-all flex items-center gap-3 ${
-                paymentMethod === 'promo'
-                  ? 'border-accent bg-accent/10'
-                  : 'border-white/10 hover:border-white/20'
-              }`}
-            >
-              <div className="text-2xl">🎁</div>
-              <div className="text-left">
-                <div className="font-semibold">Промокод</div>
-                <div className="text-sm text-white/60">Активация промокода</div>
-              </div>
-            </button>
-          </div>
+          ))}
         </CardContent>
       </Card>
 
-      {/* Итого */}
       <Card>
-        <CardContent className="pt-6">
-          <div className="flex items-center justify-between mb-4">
+        <CardContent className="flex flex-col gap-4 py-6">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <div>
-              <div className="text-sm text-white/60 mb-1">К оплате</div>
-              <div className="text-3xl font-bold">
+              <div className="text-sm text-foreground-muted">К оплате</div>
+              <div className="text-3xl font-semibold text-foreground">
                 {selectedPlanData ? formatCurrency(selectedPlanData.price) : '—'}
               </div>
             </div>
-            <Button
-              onClick={handlePayment}
-              size="lg"
-              isLoading={isLoading}
-              disabled={!selectedPlan}
-            >
+            <Button onClick={handlePayment} size="lg" isLoading={isLoading} disabled={!selectedPlan}>
               Перейти к оплате
             </Button>
           </div>
-          <p className="text-xs text-white/40">
+          <p className="text-xs text-foreground-subtle">
             Нажимая кнопку, вы соглашаетесь с условиями использования сервиса
           </p>
         </CardContent>
@@ -221,4 +221,3 @@ export default function PayPage() {
     </div>
   )
 }
-

@@ -9,24 +9,36 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        background: "#000000",
-        foreground: "#FFFFFF",
-        accent: {
-          DEFAULT: "#FF6B35",
-          hover: "#FF8355",
-          dark: "#E85A25",
+        background: {
+          DEFAULT: "#F7F8FA",
+          surface: "#FFFFFF",
+          subtle: "#EEF1F6",
         },
-        gray: {
-          850: "#1A1A1A",
-          900: "#0F0F0F",
-          950: "#050505",
+        foreground: {
+          DEFAULT: "#1F2433",
+          muted: "#5B6170",
+          subtle: "#8892A6",
+        },
+        border: "#E3E8EF",
+        accent: {
+          DEFAULT: "#8B5CF6",
+          hover: "#7C3AED",
+          soft: "#F4F0FF",
         },
       },
       fontFamily: {
         sans: ['Inter', 'SF Pro Display', 'system-ui', 'sans-serif'],
       },
       maxWidth: {
-        'dashboard': '1200px',
+        dashboard: '960px',
+      },
+      borderRadius: {
+        card: '16px',
+        pill: '999px',
+      },
+      boxShadow: {
+        card: '0 12px 32px rgba(15, 23, 42, 0.05)',
+        soft: '0 6px 18px rgba(15, 23, 42, 0.04)',
       },
     },
   },
@@ -34,4 +46,3 @@ const config: Config = {
 };
 
 export default config;
-
