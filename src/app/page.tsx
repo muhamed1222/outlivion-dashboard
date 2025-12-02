@@ -44,7 +44,7 @@ export default function DashboardPage() {
   const chartData = [
     { month: 'Jan', Users: 400, Revenue: 2400 },
     { month: 'Feb', Users: 450, Revenue: 2800 },
-    { month: 'Mar', Users: 520, Users: 3200 },
+    { month: 'Mar', Users: 520, Revenue: 3200 },
     { month: 'Apr', Users: 680, Revenue: 4100 },
     { month: 'May', Users: 890, Revenue: 5300 },
     { month: 'Jun', Users: 1234, Revenue: 7200 },
@@ -122,7 +122,7 @@ export default function DashboardPage() {
           <BarList
             data={topServers}
             className="mt-4"
-            valueFormatter={(value) => `${value} users`}
+            valueFormatter={(value: number) => `${value} users`}
           />
         </Card>
       </Grid>

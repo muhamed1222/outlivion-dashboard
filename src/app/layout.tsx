@@ -5,6 +5,9 @@ import Sidebar from '@/components/sidebar'
 export const metadata: Metadata = {
   title: 'Outlivion Dashboard',
   description: 'Admin panel для управления Outlivion VPN',
+  icons: {
+    icon: '/favicon.svg',
+  },
 }
 
 export default function RootLayout({
