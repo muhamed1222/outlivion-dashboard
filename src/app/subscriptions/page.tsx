@@ -30,6 +30,19 @@ export default function SubscriptionsPage() {
 
   const { data, error, isLoading } = useSubscriptions({ page, pageSize })
 
+  // Calculate stats (must be before any conditional returns)
+  const stats = useMemo(() => {
+    if (!data?.data) return { active: 0, expired: 0, cancelled: 0, pending: 0 }
+    
+    return data.data.reduce(
+      (acc, sub) => {
+        acc[sub.status as keyof typeof acc] = (acc[sub.status as keyof typeof acc] || 0) + 1
+        return acc
+      },
+      { active: 0, expired: 0, cancelled: 0, pending: 0 }
+    )
+  }, [data?.data])
+
   // Filter subscriptions based on search query and status
   const filteredSubscriptions = useMemo(() => {
     if (!data?.data) return []
@@ -122,19 +135,6 @@ export default function SubscriptionsPage() {
         return status
     }
   }
-
-  // Calculate stats
-  const stats = useMemo(() => {
-    if (!data?.data) return { active: 0, expired: 0, cancelled: 0, pending: 0 }
-    
-    return data.data.reduce(
-      (acc, sub) => {
-        acc[sub.status as keyof typeof acc] = (acc[sub.status as keyof typeof acc] || 0) + 1
-        return acc
-      },
-      { active: 0, expired: 0, cancelled: 0, pending: 0 }
-    )
-  }, [data?.data])
 
   return (
     <div className="space-y-6">

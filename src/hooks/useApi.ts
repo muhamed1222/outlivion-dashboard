@@ -1,7 +1,7 @@
 import useSWR from 'swr'
 import type { SWRConfiguration } from 'swr'
 import { dashboardApi } from '@/lib/api'
-import type { User, Server, Payment, Subscription, DashboardStats, PaginationParams } from '@/types'
+import type { Server, DashboardStats, PaginationParams } from '@/types'
 
 const defaultConfig: SWRConfiguration = {
   revalidateOnFocus: false,
