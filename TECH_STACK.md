@@ -200,6 +200,7 @@ components/
 
 ## 🔐 Критические переменные окружения
 
+### Production (Vercel)
 ```env
 # API (ОБЯЗАТЕЛЬНО!)
 NEXT_PUBLIC_API_URL=https://api.outlivion.space
@@ -209,7 +210,19 @@ NEXT_PUBLIC_ADMIN_SECRET=your_admin_secret_key_here
 
 # NextAuth (Optional)
 NEXTAUTH_URL=https://dashboard.outlivion.space
-NEXTAUTH_SECRET=your_nextauth_secret
+NEXTAUTH_SECRET=your_nextauth_secret_key
+
+# Environment
+NODE_ENV=production
+```
+
+### Development (Local)
+```env
+NEXT_PUBLIC_API_URL=http://localhost:3001
+NEXT_PUBLIC_ADMIN_SECRET=admin_secret_dev
+NEXTAUTH_URL=http://localhost:3004
+NEXTAUTH_SECRET=dev_secret
+NODE_ENV=development
 ```
 
 ---
