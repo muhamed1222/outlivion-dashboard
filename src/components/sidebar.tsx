@@ -1,25 +1,35 @@
 'use client'
 
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
-import { 
-  HomeIcon, 
-  UsersIcon, 
-  ServerIcon, 
+import { usePathname, useRouter } from 'next/navigation'
+import Cookies from 'js-cookie'
+import { toast } from 'react-hot-toast'
+import {
+  HomeIcon,
+  UsersIcon,
+  ServerIcon,
   CreditCardIcon,
   TicketIcon,
+  ArrowRightOnRectangleIcon,
 } from '@heroicons/react/24/outline'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: HomeIcon },
-  { name: 'Users', href: '/users', icon: UsersIcon },
-  { name: 'Servers', href: '/servers', icon: ServerIcon },
-  { name: 'Payments', href: '/payments', icon: CreditCardIcon },
-  { name: 'Subscriptions', href: '/subscriptions', icon: TicketIcon },
+  { name: 'Пользователи', href: '/users', icon: UsersIcon },
+  { name: 'Серверы', href: '/servers', icon: ServerIcon },
+  { name: 'Платежи', href: '/payments', icon: CreditCardIcon },
+  { name: 'Подписки', href: '/subscriptions', icon: TicketIcon },
 ]
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
+
+  const handleLogout = () => {
+    Cookies.remove('admin_token')
+    toast.success('Вы вышли из системы')
+    router.push('/login')
+  }
 
   return (
     <div className="flex h-screen w-64 flex-col bg-gray-900">
@@ -33,7 +43,7 @@ export default function Sidebar() {
         {navigation.map((item) => {
           const isActive = pathname === item.href
           const Icon = item.icon
-          
+
           return (
             <Link
               key={item.name}
@@ -55,13 +65,19 @@ export default function Sidebar() {
         })}
       </nav>
 
-      {/* User info */}
-      <div className="border-t border-gray-800 p-4">
+      {/* User info and logout */}
+      <div className="border-t border-gray-800 p-4 space-y-3">
         <div className="text-sm text-gray-400">
-          Logged in as <span className="font-medium text-white">Admin</span>
+          Вход выполнен как <span className="font-medium text-white">Администратор</span>
         </div>
+        <button
+          onClick={handleLogout}
+          className="flex items-center gap-2 w-full rounded-lg px-3 py-2 text-sm font-medium text-gray-400 hover:bg-gray-800 hover:text-white transition-colors duration-200"
+        >
+          <ArrowRightOnRectangleIcon className="h-5 w-5" />
+          Выход
+        </button>
       </div>
     </div>
   )
 }
-
