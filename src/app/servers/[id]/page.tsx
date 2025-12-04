@@ -1,7 +1,6 @@
 'use client'
 
-import { use } from 'react'
-import dynamic from 'next/dynamic'
+import { use, useMemo } from 'react'
 import Link from 'next/link'
 import {
   Card,
@@ -12,12 +11,6 @@ import {
   Flex,
   Badge,
   ProgressBar,
-  Table,
-  TableHead,
-  TableRow,
-  TableHeaderCell,
-  TableBody,
-  TableCell,
 } from '@tremor/react'
 import {
   ArrowLeftIcon,
@@ -26,62 +19,45 @@ import {
   UsersIcon,
   ClockIcon,
 } from '@heroicons/react/24/outline'
-
-const AreaChart = dynamic(
-  () => import('@tremor/react').then((mod) => ({ default: mod.AreaChart })),
-  {
-    loading: () => (
-      <div className="h-72 flex items-center justify-center text-gray-500 dark:text-gray-400">
-        Загрузка...
-      </div>
-    ),
-    ssr: false,
-  }
-)
+import { useServers } from '@/hooks/useApi'
 
 export default function ServerDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const { data: servers, isLoading } = useServers()
 
-  // Mock server data (replace with real API)
-  const server = {
-    id,
-    name: 'US-East-1',
-    location: 'New York',
-    country: 'USA',
-    host: 'us-east-1.outlivion.space',
-    port: 443,
-    load: 45,
-    currentUsers: 342,
-    maxUsers: 1000,
-    isActive: true,
-    uptime: 99.98,
-    createdAt: '2024-01-15T00:00:00Z',
-  }
-
-  // Mock load history
-  const loadHistory = [
-    { time: '00:00', load: 35, users: 280 },
-    { time: '04:00', load: 28, users: 220 },
-    { time: '08:00', load: 42, users: 350 },
-    { time: '12:00', load: 58, users: 480 },
-    { time: '16:00', load: 52, users: 430 },
-    { time: '20:00', load: 45, users: 380 },
-  ]
-
-  // Mock uptime history
-  const uptimeHistory = [
-    { date: '2024-01-01', uptime: 100 },
-    { date: '2024-01-02', uptime: 99.95 },
-    { date: '2024-01-03', uptime: 100 },
-    { date: '2024-01-04', uptime: 99.98 },
-    { date: '2024-01-05', uptime: 100 },
-    { date: '2024-01-06', uptime: 100 },
-  ]
+  // Find server by ID from the servers list
+  const server = useMemo(() => {
+    return servers?.find((s) => s.id === id)
+  }, [servers, id])
 
   const getLoadColor = (load: number): 'green' | 'yellow' | 'red' => {
     if (load < 50) return 'green'
     if (load < 80) return 'yellow'
     return 'red'
+  }
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-lg text-gray-500 dark:text-gray-400">Загрузка...</div>
+      </div>
+    )
+  }
+
+  if (!server) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="text-center">
+          <div className="text-lg text-gray-500 dark:text-gray-400 mb-4">Сервер не найден</div>
+          <Link
+            href="/servers"
+            className="text-blue-600 dark:text-blue-400 hover:underline"
+          >
+            Вернуться к списку серверов
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   return (
@@ -157,12 +133,15 @@ export default function ServerDetailPage({ params }: { params: Promise<{ id: str
           <Flex justifyContent="between" alignItems="center">
             <div>
               <Text className="dark:text-gray-300">Uptime</Text>
-              <Metric className="dark:text-white">{server.uptime}%</Metric>
+              <Metric className="dark:text-white">99.9%</Metric>
             </div>
             <div className="text-gray-400 dark:text-gray-500">
               <ClockIcon className="h-8 w-8" />
             </div>
           </Flex>
+          <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            Требуется API endpoint
+          </Text>
         </Card>
 
         <Card
@@ -209,64 +188,50 @@ export default function ServerDetailPage({ params }: { params: Promise<{ id: str
         </div>
       </Card>
 
-      {/* Load Chart */}
+      {/* Load Chart - Disabled until API endpoint is ready */}
       <Card className="dark:bg-gray-800 dark:border-gray-700">
         <Title className="dark:text-white">Нагрузка за последние 24 часа</Title>
-        <AreaChart
-          className="mt-4 h-72"
-          data={loadHistory}
-          index="time"
-          categories={['load']}
-          colors={['blue']}
-          valueFormatter={(value) => `${value}%`}
-        />
+        <div className="mt-4 h-72 flex items-center justify-center">
+          <div className="text-center">
+            <Text className="text-gray-500 dark:text-gray-400">
+              График нагрузки будет доступен после добавления API endpoint
+            </Text>
+            <Text className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+              GET /admin/servers/:id/load-history
+            </Text>
+          </div>
+        </div>
       </Card>
 
       <Grid numItemsLg={2} className="gap-6">
         {/* Users Chart */}
         <Card className="dark:bg-gray-800 dark:border-gray-700">
           <Title className="dark:text-white">Активные пользователи</Title>
-          <AreaChart
-            className="mt-4 h-72"
-            data={loadHistory}
-            index="time"
-            categories={['users']}
-            colors={['green']}
-            valueFormatter={(value) => `${value} пользователей`}
-          />
+          <div className="mt-4 h-72 flex items-center justify-center">
+            <div className="text-center">
+              <Text className="text-gray-500 dark:text-gray-400">
+                График активности будет доступен после добавления API
+              </Text>
+              <Text className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                GET /admin/servers/:id/users-history
+              </Text>
+            </div>
+          </div>
         </Card>
 
         {/* Uptime History */}
         <Card className="dark:bg-gray-800 dark:border-gray-700">
           <Title className="dark:text-white">История uptime (последние 7 дней)</Title>
-          <Table className="mt-4">
-            <TableHead>
-              <TableRow>
-                <TableHeaderCell>Дата</TableHeaderCell>
-                <TableHeaderCell>Uptime</TableHeaderCell>
-                <TableHeaderCell>Статус</TableHeaderCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {uptimeHistory.map((entry) => (
-                <TableRow key={entry.date}>
-                  <TableCell>
-                    <Text className="dark:text-gray-300">
-                      {new Date(entry.date).toLocaleDateString('ru-RU')}
-                    </Text>
-                  </TableCell>
-                  <TableCell>
-                    <Text className="dark:text-gray-300">{entry.uptime}%</Text>
-                  </TableCell>
-                  <TableCell>
-                    <Badge color={entry.uptime === 100 ? 'green' : 'yellow'}>
-                      {entry.uptime === 100 ? 'Отлично' : 'Хорошо'}
-                    </Badge>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+          <div className="mt-4 h-72 flex items-center justify-center">
+            <div className="text-center">
+              <Text className="text-gray-500 dark:text-gray-400">
+                История uptime будет доступна после добавления API
+              </Text>
+              <Text className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+                GET /admin/servers/:id/uptime-history
+              </Text>
+            </div>
+          </div>
         </Card>
       </Grid>
     </div>

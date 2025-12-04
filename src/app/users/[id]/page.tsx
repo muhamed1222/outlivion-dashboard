@@ -1,6 +1,6 @@
 'use client'
 
-import { use } from 'react'
+import { use, useEffect } from 'react'
 import Link from 'next/link'
 import {
   Card,
@@ -10,13 +10,6 @@ import {
   Grid,
   Flex,
   Badge,
-  Table,
-  TableHead,
-  TableRow,
-  TableHeaderCell,
-  TableBody,
-  TableCell,
-  AreaChart,
 } from '@tremor/react'
 import {
   ArrowLeftIcon,
@@ -32,9 +25,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
   const { id } = use(params)
   const { data: user, error, isLoading } = useUser(id)
 
-  if (error) {
-    toast.error('Не удалось загрузить данные пользователя')
-  }
+  useEffect(() => {
+    if (error) {
+      toast.error('Не удалось загрузить данные пользователя')
+    }
+  }, [error])
 
   if (isLoading) {
     return (
@@ -52,25 +47,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
     )
   }
 
-  // Mock data for charts and history (replace with real API data)
-  const activityData = [
-    { date: 'Янв', connections: 45, data: 120 },
-    { date: 'Фев', connections: 52, data: 145 },
-    { date: 'Мар', connections: 61, data: 178 },
-    { date: 'Апр', connections: 58, data: 165 },
-    { date: 'Май', connections: 67, data: 192 },
-    { date: 'Июн', connections: 72, data: 210 },
-  ]
-
-  const mockPayments = [
-    { id: '1', date: '2024-01-15', amount: 9.99, status: 'completed', plan: 'monthly' },
-    { id: '2', date: '2024-02-15', amount: 9.99, status: 'completed', plan: 'monthly' },
-    { id: '3', date: '2024-03-15', amount: 9.99, status: 'completed', plan: 'monthly' },
-  ]
-
-  const mockSubscriptions = [
-    { id: '1', plan: 'Premium', startDate: '2024-01-15', endDate: '2024-12-15', status: 'active' },
-  ]
+  // TODO: Replace with real API calls when endpoints are ready
+  // GET /admin/users/:id/payments - История платежей
+  // GET /admin/users/:id/subscriptions - Активные подписки  
+  // GET /admin/users/:id/activity - График активности
+  // GET /admin/users/:id/referrals - Статистика рефералов
 
   return (
     <div className="space-y-6">
@@ -139,12 +120,15 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           <Flex justifyContent="between" alignItems="center">
             <div>
               <Text className="dark:text-gray-300">Всего платежей</Text>
-              <Metric className="dark:text-white">{mockPayments.length}</Metric>
+              <Metric className="dark:text-white">0</Metric>
             </div>
             <div className="text-gray-400 dark:text-gray-500">
               <ChartBarIcon className="h-8 w-8" />
             </div>
           </Flex>
+          <Text className="mt-2 text-xs text-gray-500 dark:text-gray-400">
+            Требуется API endpoint
+          </Text>
         </Card>
 
         <Card
@@ -201,92 +185,46 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
         </div>
       </Card>
 
-      {/* Activity Chart */}
+      {/* Activity Chart - Disabled until API endpoint is ready */}
       <Card className="dark:bg-gray-800 dark:border-gray-700">
         <Title className="dark:text-white">Активность за последние 6 месяцев</Title>
-        <AreaChart
-          className="mt-4 h-72"
-          data={activityData}
-          index="date"
-          categories={['connections']}
-          colors={['blue']}
-          valueFormatter={(value) => `${value} подключений`}
-        />
+        <div className="mt-4 h-72 flex items-center justify-center">
+          <div className="text-center">
+            <Text className="text-gray-500 dark:text-gray-400">
+              График активности будет доступен после добавления API endpoint
+            </Text>
+            <Text className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+              GET /admin/users/:id/activity
+            </Text>
+          </div>
+        </div>
       </Card>
 
       <Grid numItemsLg={2} className="gap-6">
         {/* Payment History */}
         <Card className="dark:bg-gray-800 dark:border-gray-700">
           <Title className="dark:text-white">История платежей</Title>
-          {mockPayments.length === 0 ? (
-            <div className="text-center py-8">
-              <Text className="text-gray-500 dark:text-gray-400">Нет платежей</Text>
-            </div>
-          ) : (
-            <Table className="mt-4">
-              <TableHead>
-                <TableRow>
-                  <TableHeaderCell>Дата</TableHeaderCell>
-                  <TableHeaderCell>Сумма</TableHeaderCell>
-                  <TableHeaderCell>Статус</TableHeaderCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {mockPayments.map((payment) => (
-                  <TableRow key={payment.id}>
-                    <TableCell>
-                      <Text className="dark:text-gray-300">
-                        {new Date(payment.date).toLocaleDateString('ru-RU')}
-                      </Text>
-                    </TableCell>
-                    <TableCell>
-                      <Text className="dark:text-gray-300">${payment.amount}</Text>
-                    </TableCell>
-                    <TableCell>
-                      <Badge color="green">Успешно</Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <div className="text-center py-8">
+            <Text className="text-gray-500 dark:text-gray-400">
+              Данные будут доступны после добавления API
+            </Text>
+            <Text className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+              GET /admin/users/:id/payments
+            </Text>
+          </div>
         </Card>
 
         {/* Subscriptions */}
         <Card className="dark:bg-gray-800 dark:border-gray-700">
           <Title className="dark:text-white">Подписки</Title>
-          {mockSubscriptions.length === 0 ? (
-            <div className="text-center py-8">
-              <Text className="text-gray-500 dark:text-gray-400">Нет подписок</Text>
-            </div>
-          ) : (
-            <Table className="mt-4">
-              <TableHead>
-                <TableRow>
-                  <TableHeaderCell>План</TableHeaderCell>
-                  <TableHeaderCell>Окончание</TableHeaderCell>
-                  <TableHeaderCell>Статус</TableHeaderCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {mockSubscriptions.map((sub) => (
-                  <TableRow key={sub.id}>
-                    <TableCell>
-                      <Text className="dark:text-gray-300">{sub.plan}</Text>
-                    </TableCell>
-                    <TableCell>
-                      <Text className="dark:text-gray-300">
-                        {new Date(sub.endDate).toLocaleDateString('ru-RU')}
-                      </Text>
-                    </TableCell>
-                    <TableCell>
-                      <Badge color="green">Активна</Badge>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          )}
+          <div className="text-center py-8">
+            <Text className="text-gray-500 dark:text-gray-400">
+              Данные будут доступны после добавления API
+            </Text>
+            <Text className="text-sm text-gray-400 dark:text-gray-500 mt-2">
+              GET /admin/users/:id/subscriptions
+            </Text>
+          </div>
         </Card>
       </Grid>
     </div>
