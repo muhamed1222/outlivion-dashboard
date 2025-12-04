@@ -3,7 +3,6 @@
 import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Card, Title, Text, TextInput, Button } from '@tremor/react'
-import Cookies from 'js-cookie'
 import { toast } from 'react-hot-toast'
 
 export default function LoginPage() {
@@ -22,25 +21,25 @@ export default function LoginPage() {
     setIsLoading(true)
 
     try {
-      // For demo purposes, use simple validation
-      // In production, this should call your actual auth API
-      const adminSecret = process.env.NEXT_PUBLIC_ADMIN_SECRET || 'admin123'
-      
-      if (formData.password === adminSecret) {
-        // Generate a simple token (in production, get this from backend)
-        const token = btoa(`${formData.username}:${Date.now()}`)
-        
-        // Set cookie with security flags
-        Cookies.set('admin_token', token, {
-          expires: 7, // 7 days
-          secure: process.env.NODE_ENV === 'production',
-          sameSite: 'strict',
-        })
+      // Call server-side API for authentication
+      const response = await fetch('/api/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          username: formData.username,
+          password: formData.password,
+        }),
+      })
 
+      const data = await response.json()
+
+      if (response.ok) {
         toast.success('Успешный вход!')
         router.push(redirectTo)
       } else {
-        toast.error('Неверный пароль')
+        toast.error(data.error || 'Неверный пароль')
       }
     } catch (error) {
       console.error('Login error:', error)
@@ -99,7 +98,7 @@ export default function LoginPage() {
 
         <div className="mt-6 p-4 bg-blue-50 rounded-lg">
           <Text className="text-sm text-blue-800">
-            <strong>Демо режим:</strong> Используйте любой логин и пароль из .env.local
+            <strong>Secure Login:</strong> Используйте ADMIN_SECRET из environment variables
           </Text>
         </div>
       </Card>
