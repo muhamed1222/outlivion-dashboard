@@ -18,8 +18,10 @@ import { usePayments } from '@/hooks/useApi'
 import { dashboardApi } from '@/lib/api'
 import Pagination from '@/components/pagination'
 import SearchBar from '@/components/search-bar'
+import { exportPaymentsToCSV } from '@/lib/export'
 import { toast } from 'react-hot-toast'
 import { mutate } from 'swr'
+import { ArrowDownTrayIcon } from '@heroicons/react/24/outline'
 
 export default function PaymentsPage() {
   const [page, setPage] = useState(1)
@@ -55,6 +57,15 @@ export default function PaymentsPage() {
       console.error('Refund error:', error)
       toast.error('Не удалось выполнить возврат')
     }
+  }
+
+  const handleExportCSV = () => {
+    if (filteredPayments.length === 0) {
+      toast.error('Нет данных для экспорта')
+      return
+    }
+    exportPaymentsToCSV(filteredPayments)
+    toast.success(`Экспортировано ${filteredPayments.length} платежей`)
   }
 
   if (error) {
@@ -114,9 +125,19 @@ export default function PaymentsPage() {
 
   return (
     <div className="space-y-6">
-      <div>
-        <Title>Платежи</Title>
-        <Text>Просмотр всех платежных транзакций</Text>
+      <div className="flex items-center justify-between">
+        <div>
+          <Title className="dark:text-white">Платежи</Title>
+          <Text className="dark:text-gray-300">Просмотр всех платежных транзакций</Text>
+        </div>
+        <Button
+          size="sm"
+          variant="secondary"
+          icon={ArrowDownTrayIcon}
+          onClick={handleExportCSV}
+        >
+          Экспорт CSV
+        </Button>
       </div>
 
       <div className="flex gap-4">

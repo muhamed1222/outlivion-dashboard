@@ -1,15 +1,19 @@
 'use client'
 
+import { useRouter } from 'next/navigation'
 import { Card, Title, Text, Grid, ProgressBar, Badge, Button } from '@tremor/react'
 import { useServers } from '@/hooks/useApi'
 import { dashboardApi } from '@/lib/api'
 import { toast } from 'react-hot-toast'
 import { mutate } from 'swr'
+import { ChartBarIcon } from '@heroicons/react/24/outline'
 
 export default function ServersPage() {
+  const router = useRouter()
   const { data: servers, error, isLoading } = useServers()
 
-  const handleToggleServer = async (serverId: string, currentStatus: boolean) => {
+  const handleToggleServer = async (serverId: string, currentStatus: boolean, e: React.MouseEvent) => {
+    e.stopPropagation()
     try {
       await dashboardApi.toggleServer(serverId, !currentStatus)
       toast.success(`Сервер ${!currentStatus ? 'активирован' : 'деактивирован'}`)
@@ -41,8 +45,8 @@ export default function ServersPage() {
   return (
     <div className="space-y-6">
       <div>
-        <Title>Серверы</Title>
-        <Text>Мониторинг и управление VPN серверами</Text>
+        <Title className="dark:text-white">Серверы</Title>
+        <Text className="dark:text-gray-300">Мониторинг и управление VPN серверами</Text>
       </div>
 
       {!servers || servers.length === 0 ? (
@@ -54,14 +58,21 @@ export default function ServersPage() {
       ) : (
         <Grid numItemsLg={2} className="gap-6">
           {servers.map((server) => (
-            <Card key={server.id}>
+            <Card 
+              key={server.id} 
+              className="cursor-pointer hover:shadow-lg dark:hover:bg-gray-750 transition-all dark:bg-gray-800 dark:border-gray-700"
+              onClick={() => router.push(`/servers/${server.id}`)}
+            >
               <div className="flex items-start justify-between mb-4">
                 <div>
-                  <Title>{server.name}</Title>
-                  <Text>
+                  <div className="flex items-center gap-2">
+                    <Title className="dark:text-white">{server.name}</Title>
+                    <ChartBarIcon className="h-5 w-5 text-gray-400 dark:text-gray-500" />
+                  </div>
+                  <Text className="dark:text-gray-300">
                     {server.location}, {server.country}
                   </Text>
-                  <Text className="text-sm text-gray-500 mt-1">
+                  <Text className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                     {server.host}:{server.port}
                   </Text>
                 </div>
@@ -72,7 +83,7 @@ export default function ServersPage() {
                   <Button
                     size="xs"
                     variant="secondary"
-                    onClick={() => handleToggleServer(server.id, server.isActive)}
+                    onClick={(e) => handleToggleServer(server.id, server.isActive, e)}
                   >
                     {server.isActive ? 'Отключить' : 'Включить'}
                   </Button>
@@ -88,16 +99,16 @@ export default function ServersPage() {
                   <ProgressBar value={server.load} color={getLoadColor(server.load)} />
                 </div>
 
-                <div className="flex justify-between pt-4 border-t border-gray-200">
+                <div className="flex justify-between pt-4 border-t border-gray-200 dark:border-gray-700">
                   <div>
-                    <Text className="text-gray-500">Пользователи</Text>
-                    <Text className="text-lg font-semibold">
+                    <Text className="text-gray-500 dark:text-gray-400">Пользователи</Text>
+                    <Text className="text-lg font-semibold dark:text-white">
                       {server.currentUsers} / {server.maxUsers}
                     </Text>
                   </div>
                   <div>
-                    <Text className="text-gray-500">Заполненность</Text>
-                    <Text className="text-lg font-semibold">
+                    <Text className="text-gray-500 dark:text-gray-400">Заполненность</Text>
+                    <Text className="text-lg font-semibold dark:text-white">
                       {Math.round((server.currentUsers / server.maxUsers) * 100)}%
                     </Text>
                   </div>

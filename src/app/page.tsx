@@ -1,6 +1,7 @@
 'use client'
 
-import { Card, Grid, Title, Text, AreaChart, BarList } from '@tremor/react'
+import dynamic from 'next/dynamic'
+import { Card, Grid, Title, Text, BarList } from '@tremor/react'
 import StatsCard from '@/components/stats-card'
 import { useStats, useServers } from '@/hooks/useApi'
 import {
@@ -10,6 +11,15 @@ import {
   CheckCircleIcon,
 } from '@heroicons/react/24/outline'
 import { toast } from 'react-hot-toast'
+
+// Lazy load heavy chart component
+const AreaChart = dynamic(
+  () => import('@tremor/react').then((mod) => ({ default: mod.AreaChart })),
+  {
+    loading: () => <div className="h-72 flex items-center justify-center text-gray-500 dark:text-gray-400">Загрузка графика...</div>,
+    ssr: false,
+  }
+)
 
 export default function DashboardPage() {
   const { data: stats, error: statsError, isLoading: statsLoading } = useStats()

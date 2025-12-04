@@ -14,3 +14,64 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Dark mode styles for Tremor components */
+.dark {
+  color-scheme: dark;
+}
+
+/* Override Tremor defaults in dark mode */
+.dark .tremor-Card-root {
+  background-color: #1f2937;
+  border-color: #374151;
+}
+
+.dark .tremor-Table-root {
+  background-color: #1f2937;
+}
+
+.dark .tremor-TableRow-root:hover {
+  background-color: #374151;
+}
+
+.dark .tremor-Title-root {
+  color: #f9fafb;
+}
+
+.dark .tremor-Text-root {
+  color: #d1d5db;
+}
+
+.dark .tremor-Metric-root {
+  color: #f9fafb;
+}
+
+.dark .tremor-Badge-root {
+  background-color: #374151;
+  color: #d1d5db;
+}
+
+.dark .tremor-Button-root {
+  background-color: #3b82f6;
+  color: #ffffff;
+}
+
+.dark .tremor-Button-root:hover {
+  background-color: #2563eb;
+}
+
+.dark .tremor-TextInput-input {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
+.dark .tremor-TextInput-input:focus {
+  border-color: #3b82f6;
+}
+
+.dark .tremor-Select-select {
+  background-color: #374151;
+  border-color: #4b5563;
+  color: #f9fafb;
+}
+
