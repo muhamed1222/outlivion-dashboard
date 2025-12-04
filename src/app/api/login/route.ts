@@ -10,10 +10,7 @@ export async function POST(request: Request) {
 
     if (!adminSecret) {
       console.error('ADMIN_SECRET is not set in environment variables')
-      return NextResponse.json(
-        { error: 'Server configuration error' },
-        { status: 500 }
-      )
+      return NextResponse.json({ error: 'Server configuration error' }, { status: 500 })
     }
 
     // Validate password
@@ -36,17 +33,10 @@ export async function POST(request: Request) {
         message: 'Успешный вход',
       })
     } else {
-      return NextResponse.json(
-        { error: 'Неверный пароль' },
-        { status: 401 }
-      )
+      return NextResponse.json({ error: 'Неверный пароль' }, { status: 401 })
     }
   } catch (error) {
     console.error('Login error:', error)
-    return NextResponse.json(
-      { error: 'Ошибка входа' },
-      { status: 500 }
-    )
+    return NextResponse.json({ error: 'Ошибка входа' }, { status: 500 })
   }
 }
-

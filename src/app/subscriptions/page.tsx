@@ -33,7 +33,7 @@ export default function SubscriptionsPage() {
   // Calculate stats (must be before any conditional returns)
   const stats = useMemo(() => {
     if (!data?.data) return { active: 0, expired: 0, cancelled: 0, pending: 0 }
-    
+
     return data.data.reduce(
       (acc, sub) => {
         acc[sub.status as keyof typeof acc] = (acc[sub.status as keyof typeof acc] || 0) + 1
@@ -46,7 +46,7 @@ export default function SubscriptionsPage() {
   // Filter subscriptions based on search query and status
   const filteredSubscriptions = useMemo(() => {
     if (!data?.data) return []
-    
+
     let filtered = data.data
 
     // Filter by status
@@ -214,19 +214,13 @@ export default function SubscriptionsPage() {
                 {filteredSubscriptions.map((subscription) => (
                   <TableRow key={subscription.id}>
                     <TableCell>
-                      <Text className="font-mono text-sm">
-                        #{subscription.id.slice(0, 8)}
-                      </Text>
+                      <Text className="font-mono text-sm">#{subscription.id.slice(0, 8)}</Text>
                     </TableCell>
                     <TableCell>
-                      <Text className="font-mono text-sm">
-                        {subscription.userId.slice(0, 8)}
-                      </Text>
+                      <Text className="font-mono text-sm">{subscription.userId.slice(0, 8)}</Text>
                     </TableCell>
                     <TableCell>
-                      <Text className="font-mono text-sm">
-                        {subscription.planId.slice(0, 8)}
-                      </Text>
+                      <Text className="font-mono text-sm">{subscription.planId.slice(0, 8)}</Text>
                     </TableCell>
                     <TableCell>
                       {subscription.serverId && (

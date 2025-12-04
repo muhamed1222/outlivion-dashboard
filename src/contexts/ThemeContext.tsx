@@ -14,10 +14,8 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
 export function ThemeProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<Theme>('light')
-  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
-    setMounted(true)
     // Get theme from localStorage or system preference
     const savedTheme = localStorage.getItem('theme') as Theme | null
     if (savedTheme) {
@@ -41,11 +39,6 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const toggleTheme = () => {
     const newTheme = theme === 'light' ? 'dark' : 'light'
     setTheme(newTheme)
-  }
-
-  // Avoid hydration mismatch
-  if (!mounted) {
-    return <>{children}</>
   }
 
   return (

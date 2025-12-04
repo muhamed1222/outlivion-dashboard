@@ -9,13 +9,7 @@ interface StatsCardProps {
   icon?: React.ReactNode
 }
 
-function StatsCard({ 
-  title, 
-  metric, 
-  delta, 
-  deltaType = 'unchanged',
-  icon 
-}: StatsCardProps) {
+function StatsCard({ title, metric, delta, deltaType = 'unchanged', icon }: StatsCardProps) {
   return (
     <Card decoration="top" decorationColor="blue" className="dark:bg-gray-800 dark:border-gray-700">
       <Flex justifyContent="between" alignItems="center">
@@ -35,4 +29,3 @@ function StatsCard({
 }
 
 export default memo(StatsCard)
-

@@ -26,12 +26,15 @@ import {
   UsersIcon,
   ClockIcon,
 } from '@heroicons/react/24/outline'
-import { toast } from 'react-hot-toast'
 
 const AreaChart = dynamic(
   () => import('@tremor/react').then((mod) => ({ default: mod.AreaChart })),
   {
-    loading: () => <div className="h-72 flex items-center justify-center text-gray-500 dark:text-gray-400">Загрузка...</div>,
+    loading: () => (
+      <div className="h-72 flex items-center justify-center text-gray-500 dark:text-gray-400">
+        Загрузка...
+      </div>
+    ),
     ssr: false,
   }
 )
@@ -106,7 +109,11 @@ export default function ServerDetailPage({ params }: { params: Promise<{ id: str
 
       {/* Stats Grid */}
       <Grid numItemsSm={2} numItemsLg={4} className="gap-6">
-        <Card decoration="top" decorationColor={getLoadColor(server.load)} className="dark:bg-gray-800 dark:border-gray-700">
+        <Card
+          decoration="top"
+          decorationColor={getLoadColor(server.load)}
+          className="dark:bg-gray-800 dark:border-gray-700"
+        >
           <Flex justifyContent="between" alignItems="center">
             <div>
               <Text className="dark:text-gray-300">Нагрузка</Text>
@@ -119,7 +126,11 @@ export default function ServerDetailPage({ params }: { params: Promise<{ id: str
           <ProgressBar value={server.load} color={getLoadColor(server.load)} className="mt-4" />
         </Card>
 
-        <Card decoration="top" decorationColor="blue" className="dark:bg-gray-800 dark:border-gray-700">
+        <Card
+          decoration="top"
+          decorationColor="blue"
+          className="dark:bg-gray-800 dark:border-gray-700"
+        >
           <Flex justifyContent="between" alignItems="center">
             <div>
               <Text className="dark:text-gray-300">Пользователей</Text>
@@ -131,10 +142,18 @@ export default function ServerDetailPage({ params }: { params: Promise<{ id: str
               <UsersIcon className="h-8 w-8" />
             </div>
           </Flex>
-          <ProgressBar value={(server.currentUsers / server.maxUsers) * 100} color="blue" className="mt-4" />
+          <ProgressBar
+            value={(server.currentUsers / server.maxUsers) * 100}
+            color="blue"
+            className="mt-4"
+          />
         </Card>
 
-        <Card decoration="top" decorationColor="green" className="dark:bg-gray-800 dark:border-gray-700">
+        <Card
+          decoration="top"
+          decorationColor="green"
+          className="dark:bg-gray-800 dark:border-gray-700"
+        >
           <Flex justifyContent="between" alignItems="center">
             <div>
               <Text className="dark:text-gray-300">Uptime</Text>
@@ -146,13 +165,15 @@ export default function ServerDetailPage({ params }: { params: Promise<{ id: str
           </Flex>
         </Card>
 
-        <Card decoration="top" decorationColor="purple" className="dark:bg-gray-800 dark:border-gray-700">
+        <Card
+          decoration="top"
+          decorationColor="purple"
+          className="dark:bg-gray-800 dark:border-gray-700"
+        >
           <Flex justifyContent="between" alignItems="center">
             <div>
               <Text className="dark:text-gray-300">Статус</Text>
-              <Metric className="dark:text-white">
-                {server.isActive ? 'Online' : 'Offline'}
-              </Metric>
+              <Metric className="dark:text-white">{server.isActive ? 'Online' : 'Offline'}</Metric>
             </div>
             <div className="text-gray-400 dark:text-gray-500">
               <ServerIcon className="h-8 w-8" />

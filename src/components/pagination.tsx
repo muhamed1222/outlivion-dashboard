@@ -48,7 +48,10 @@ export default function Pagination({
           </p>
         </div>
         <div>
-          <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+          <nav
+            className="isolate inline-flex -space-x-px rounded-md shadow-sm"
+            aria-label="Pagination"
+          >
             <button
               onClick={() => onPageChange(currentPage - 1)}
               disabled={currentPage === 1}
@@ -57,7 +60,7 @@ export default function Pagination({
               <span className="sr-only">Предыдущая</span>
               <ChevronLeftIcon className="h-5 w-5" aria-hidden="true" />
             </button>
-            
+
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => {
               // Show first page, last page, current page, and pages around current
               const showPage =
@@ -103,7 +106,7 @@ export default function Pagination({
                 </button>
               )
             })}
-            
+
             <button
               onClick={() => onPageChange(currentPage + 1)}
               disabled={currentPage === totalPages}
@@ -118,4 +121,3 @@ export default function Pagination({
     </div>
   )
 }
-

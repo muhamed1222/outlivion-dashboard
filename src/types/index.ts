@@ -124,4 +124,3 @@ export interface Activity {
   timestamp: string
   userId?: string
 }
-

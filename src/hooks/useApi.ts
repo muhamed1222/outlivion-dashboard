@@ -30,11 +30,7 @@ const listConfig: SWRConfiguration = {
 }
 
 export function useStats() {
-  return useSWR<DashboardStats>(
-    '/admin/stats',
-    () => dashboardApi.getStats(),
-    statsConfig
-  )
+  return useSWR<DashboardStats>('/admin/stats', () => dashboardApi.getStats(), statsConfig)
 }
 
 export function useUsers(params: PaginationParams) {
@@ -57,11 +53,7 @@ export function useUser(userId: string | null) {
 }
 
 export function useServers() {
-  return useSWR<Server[]>(
-    '/admin/servers',
-    () => dashboardApi.getServers(),
-    serversConfig
-  )
+  return useSWR<Server[]>('/admin/servers', () => dashboardApi.getServers(), serversConfig)
 }
 
 export function usePayments(params: PaginationParams) {
@@ -79,4 +71,3 @@ export function useSubscriptions(params: PaginationParams) {
     listConfig
   )
 }
-

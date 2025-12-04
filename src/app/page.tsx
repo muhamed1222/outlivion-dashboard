@@ -1,22 +1,22 @@
 'use client'
 
+import { useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import { Card, Grid, Title, Text, BarList } from '@tremor/react'
 import StatsCard from '@/components/stats-card'
 import { useStats, useServers } from '@/hooks/useApi'
-import {
-  UsersIcon,
-  ServerIcon,
-  CreditCardIcon,
-  CheckCircleIcon,
-} from '@heroicons/react/24/outline'
+import { UsersIcon, ServerIcon, CreditCardIcon, CheckCircleIcon } from '@heroicons/react/24/outline'
 import { toast } from 'react-hot-toast'
 
 // Lazy load heavy chart component
 const AreaChart = dynamic(
   () => import('@tremor/react').then((mod) => ({ default: mod.AreaChart })),
   {
-    loading: () => <div className="h-72 flex items-center justify-center text-gray-500 dark:text-gray-400">Загрузка графика...</div>,
+    loading: () => (
+      <div className="h-72 flex items-center justify-center text-gray-500 dark:text-gray-400">
+        Загрузка графика...
+      </div>
+    ),
     ssr: false,
   }
 )
@@ -25,13 +25,18 @@ export default function DashboardPage() {
   const { data: stats, error: statsError, isLoading: statsLoading } = useStats()
   const { data: servers, error: serversError } = useServers()
 
-  // Show error toasts
-  if (statsError) {
-    toast.error('Не удалось загрузить статистику')
-  }
-  if (serversError) {
-    toast.error('Не удалось загрузить данные серверов')
-  }
+  // Show error toasts in useEffect to avoid setState during render
+  useEffect(() => {
+    if (statsError) {
+      toast.error('Не удалось загрузить статистику')
+    }
+  }, [statsError])
+
+  useEffect(() => {
+    if (serversError) {
+      toast.error('Не удалось загрузить данные серверов')
+    }
+  }, [serversError])
 
   // Mock chart data (будет заменено реальными данными когда API будет готово)
   const chartData = [
@@ -143,10 +148,7 @@ export default function DashboardPage() {
               time: '1 час назад',
             },
           ].map((activity, idx) => (
-            <div
-              key={idx}
-              className="flex items-center justify-between p-3 bg-gray-50 rounded-lg"
-            >
+            <div key={idx} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
               <Text>{activity.text}</Text>
               <Text className="text-gray-500 text-sm">{activity.time}</Text>
             </div>

@@ -35,7 +35,7 @@ export default function UsersPage() {
   // Filter users based on search query and filters
   const filteredUsers = useMemo(() => {
     if (!data?.data) return []
-    
+
     let result = data.data
 
     // Apply search query
@@ -60,14 +60,10 @@ export default function UsersPage() {
 
     // Apply date range filter
     if (filters.dateRange?.from) {
-      result = result.filter(
-        (user) => new Date(user.createdAt) >= filters.dateRange!.from!
-      )
+      result = result.filter((user) => new Date(user.createdAt) >= filters.dateRange!.from!)
     }
     if (filters.dateRange?.to) {
-      result = result.filter(
-        (user) => new Date(user.createdAt) <= filters.dateRange!.to!
-      )
+      result = result.filter((user) => new Date(user.createdAt) <= filters.dateRange!.to!)
     }
 
     return result
@@ -103,14 +99,11 @@ export default function UsersPage() {
       <div className="flex items-center justify-between">
         <div>
           <Title className="dark:text-white">Пользователи</Title>
-          <Text className="dark:text-gray-300">Управление и просмотр всех пользователей платформы</Text>
+          <Text className="dark:text-gray-300">
+            Управление и просмотр всех пользователей платформы
+          </Text>
         </div>
-        <Button
-          size="sm"
-          variant="secondary"
-          icon={ArrowDownTrayIcon}
-          onClick={handleExportCSV}
-        >
+        <Button size="sm" variant="secondary" icon={ArrowDownTrayIcon} onClick={handleExportCSV}>
           Экспорт CSV
         </Button>
       </div>
@@ -153,10 +146,10 @@ export default function UsersPage() {
               </TableHead>
               <TableBody>
                 {filteredUsers.map((user) => (
-                  <TableRow 
-                    key={user.id} 
+                  <TableRow
+                    key={user.id}
                     className="cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700"
-                    onClick={() => window.location.href = `/users/${user.id}`}
+                    onClick={() => (window.location.href = `/users/${user.id}`)}
                   >
                     <TableCell>
                       <div>
@@ -164,7 +157,9 @@ export default function UsersPage() {
                           {user.firstName} {user.lastName}
                         </div>
                         {user.username && (
-                          <div className="text-sm text-gray-500 dark:text-gray-400">@{user.username}</div>
+                          <div className="text-sm text-gray-500 dark:text-gray-400">
+                            @{user.username}
+                          </div>
                         )}
                       </div>
                     </TableCell>

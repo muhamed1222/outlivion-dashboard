@@ -12,7 +12,11 @@ export default function ServersPage() {
   const router = useRouter()
   const { data: servers, error, isLoading } = useServers()
 
-  const handleToggleServer = async (serverId: string, currentStatus: boolean, e: React.MouseEvent) => {
+  const handleToggleServer = async (
+    serverId: string,
+    currentStatus: boolean,
+    e: React.MouseEvent
+  ) => {
     e.stopPropagation()
     try {
       await dashboardApi.toggleServer(serverId, !currentStatus)
@@ -58,8 +62,8 @@ export default function ServersPage() {
       ) : (
         <Grid numItemsLg={2} className="gap-6">
           {servers.map((server) => (
-            <Card 
-              key={server.id} 
+            <Card
+              key={server.id}
               className="cursor-pointer hover:shadow-lg dark:hover:bg-gray-750 transition-all dark:bg-gray-800 dark:border-gray-700"
               onClick={() => router.push(`/servers/${server.id}`)}
             >

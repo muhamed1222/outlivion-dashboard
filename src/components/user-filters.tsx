@@ -16,8 +16,12 @@ interface UserFiltersProps {
   onReset: () => void
 }
 
-export default function UserFiltersComponent({ filters, onFiltersChange, onReset }: UserFiltersProps) {
-  const hasActiveFilters = 
+export default function UserFiltersComponent({
+  filters,
+  onFiltersChange,
+  onReset,
+}: UserFiltersProps) {
+  const hasActiveFilters =
     (filters.subscriptionStatus && filters.subscriptionStatus !== 'all') ||
     filters.balanceMin !== undefined ||
     filters.balanceMax !== undefined ||
@@ -31,12 +35,7 @@ export default function UserFiltersComponent({ filters, onFiltersChange, onReset
           <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">Фильтры</h3>
         </div>
         {hasActiveFilters && (
-          <Button
-            size="xs"
-            variant="secondary"
-            onClick={onReset}
-            icon={XMarkIcon}
-          >
+          <Button size="xs" variant="secondary" onClick={onReset} icon={XMarkIcon}>
             Сбросить
           </Button>
         )}
@@ -50,8 +49,11 @@ export default function UserFiltersComponent({ filters, onFiltersChange, onReset
           </label>
           <Select
             value={filters.subscriptionStatus || 'all'}
-            onValueChange={(value) => 
-              onFiltersChange({ ...filters, subscriptionStatus: value as UserFilters['subscriptionStatus'] })
+            onValueChange={(value) =>
+              onFiltersChange({
+                ...filters,
+                subscriptionStatus: value as UserFilters['subscriptionStatus'],
+              })
             }
           >
             <SelectItem value="all">Все</SelectItem>
@@ -70,10 +72,10 @@ export default function UserFiltersComponent({ filters, onFiltersChange, onReset
             type="number"
             placeholder="0.00"
             value={filters.balanceMin || ''}
-            onChange={(e) => 
-              onFiltersChange({ 
-                ...filters, 
-                balanceMin: e.target.value ? parseFloat(e.target.value) : undefined 
+            onChange={(e) =>
+              onFiltersChange({
+                ...filters,
+                balanceMin: e.target.value ? parseFloat(e.target.value) : undefined,
               })
             }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"
@@ -89,10 +91,10 @@ export default function UserFiltersComponent({ filters, onFiltersChange, onReset
             type="number"
             placeholder="1000.00"
             value={filters.balanceMax || ''}
-            onChange={(e) => 
-              onFiltersChange({ 
-                ...filters, 
-                balanceMax: e.target.value ? parseFloat(e.target.value) : undefined 
+            onChange={(e) =>
+              onFiltersChange({
+                ...filters,
+                balanceMax: e.target.value ? parseFloat(e.target.value) : undefined,
               })
             }
             className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-blue-500 focus:border-transparent"

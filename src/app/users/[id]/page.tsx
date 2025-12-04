@@ -99,7 +99,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
 
       {/* Stats Grid */}
       <Grid numItemsSm={2} numItemsLg={4} className="gap-6">
-        <Card decoration="top" decorationColor="blue" className="dark:bg-gray-800 dark:border-gray-700">
+        <Card
+          decoration="top"
+          decorationColor="blue"
+          className="dark:bg-gray-800 dark:border-gray-700"
+        >
           <Flex justifyContent="between" alignItems="center">
             <div>
               <Text className="dark:text-gray-300">Баланс</Text>
@@ -111,7 +115,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           </Flex>
         </Card>
 
-        <Card decoration="top" decorationColor="green" className="dark:bg-gray-800 dark:border-gray-700">
+        <Card
+          decoration="top"
+          decorationColor="green"
+          className="dark:bg-gray-800 dark:border-gray-700"
+        >
           <Flex justifyContent="between" alignItems="center">
             <div>
               <Text className="dark:text-gray-300">Активные подписки</Text>
@@ -123,7 +131,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           </Flex>
         </Card>
 
-        <Card decoration="top" decorationColor="purple" className="dark:bg-gray-800 dark:border-gray-700">
+        <Card
+          decoration="top"
+          decorationColor="purple"
+          className="dark:bg-gray-800 dark:border-gray-700"
+        >
           <Flex justifyContent="between" alignItems="center">
             <div>
               <Text className="dark:text-gray-300">Всего платежей</Text>
@@ -135,7 +147,11 @@ export default function UserDetailPage({ params }: { params: Promise<{ id: strin
           </Flex>
         </Card>
 
-        <Card decoration="top" decorationColor="orange" className="dark:bg-gray-800 dark:border-gray-700">
+        <Card
+          decoration="top"
+          decorationColor="orange"
+          className="dark:bg-gray-800 dark:border-gray-700"
+        >
           <Flex justifyContent="between" alignItems="center">
             <div>
               <Text className="dark:text-gray-300">Рефералы</Text>

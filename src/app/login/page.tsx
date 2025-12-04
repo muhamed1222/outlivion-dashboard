@@ -86,12 +86,7 @@ export default function LoginPage() {
             />
           </div>
 
-          <Button
-            type="submit"
-            size="lg"
-            loading={isLoading}
-            className="w-full"
-          >
+          <Button type="submit" size="lg" loading={isLoading} className="w-full">
             Войти
           </Button>
         </form>
@@ -105,4 +100,3 @@ export default function LoginPage() {
     </div>
   )
 }
-

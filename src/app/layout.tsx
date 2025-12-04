@@ -1,9 +1,8 @@
 import type { Metadata } from 'next'
 import './globals.css'
-import Sidebar from '@/components/sidebar'
-import Breadcrumbs from '@/components/breadcrumbs'
 import { Toaster } from 'react-hot-toast'
 import { ThemeProvider } from '@/contexts/ThemeContext'
+import LayoutWrapper from '@/components/layout-wrapper'
 
 export const metadata: Metadata = {
   title: 'Outlivion Dashboard',
@@ -13,16 +12,12 @@ export const metadata: Metadata = {
   },
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="ru" suppressHydrationWarning>
       <body>
         <ThemeProvider>
-          <Toaster 
+          <Toaster
             position="top-right"
             toastOptions={{
               duration: 4000,
@@ -46,18 +41,9 @@ export default function RootLayout({
               },
             }}
           />
-          <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
-            <Sidebar />
-            <main className="flex-1 overflow-y-auto">
-              <div className="p-6">
-                <Breadcrumbs />
-                {children}
-              </div>
-            </main>
-          </div>
+          <LayoutWrapper>{children}</LayoutWrapper>
         </ThemeProvider>
       </body>
     </html>
   )
 }
-

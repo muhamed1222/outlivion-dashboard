@@ -6,10 +6,10 @@ const publicPaths = ['/login', '/api/login']
 
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl
-  
+
   // Check if the path is public
-  const isPublicPath = publicPaths.some(path => pathname.startsWith(path))
-  
+  const isPublicPath = publicPaths.some((path) => pathname.startsWith(path))
+
   if (isPublicPath) {
     return NextResponse.next()
   }
@@ -41,4 +41,3 @@ export const config = {
     '/((?!_next/static|_next/image|favicon|public).*)',
   ],
 }
-

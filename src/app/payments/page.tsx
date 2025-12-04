@@ -130,12 +130,7 @@ export default function PaymentsPage() {
           <Title className="dark:text-white">Платежи</Title>
           <Text className="dark:text-gray-300">Просмотр всех платежных транзакций</Text>
         </div>
-        <Button
-          size="sm"
-          variant="secondary"
-          icon={ArrowDownTrayIcon}
-          onClick={handleExportCSV}
-        >
+        <Button size="sm" variant="secondary" icon={ArrowDownTrayIcon} onClick={handleExportCSV}>
           Экспорт CSV
         </Button>
       </div>
@@ -228,4 +223,3 @@ export default function PaymentsPage() {
     </div>
   )
 }
-

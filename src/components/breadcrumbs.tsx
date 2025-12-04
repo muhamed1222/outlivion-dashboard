@@ -39,12 +39,12 @@ export default function Breadcrumbs() {
     let currentPath = ''
     segments.forEach((segment, index) => {
       currentPath += `/${segment}`
-      
+
       // Check if it's a UUID or ID (last segment and looks like an ID)
-      const isId = index === segments.length - 1 && (
-        segment.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) ||
-        segment.length > 20
-      )
+      const isId =
+        index === segments.length - 1 &&
+        (segment.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i) ||
+          segment.length > 20)
 
       if (isId) {
         // For IDs, use a generic "Детали" label
