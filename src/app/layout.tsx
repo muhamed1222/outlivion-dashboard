@@ -1,3 +1,4 @@
+import * as Sentry from '@sentry/nextjs'
 import type { Metadata } from 'next'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
@@ -9,6 +10,9 @@ export const metadata: Metadata = {
   description: 'Admin panel для управления Outlivion VPN',
   icons: {
     icon: '/favicon.svg',
+  },
+  other: {
+    ...Sentry.getTraceData(),
   },
 }
 
